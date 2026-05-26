@@ -1,122 +1,558 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const EcoHabitTrackerApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class EcoHabitTrackerApp extends StatelessWidget {
+  const EcoHabitTrackerApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    const seedColor = Color(0xFF1B5E20);
+
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'Eco Habit Tracker',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: seedColor),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const EcoHomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class EcoHomePage extends StatefulWidget {
+  const EcoHomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<EcoHomePage> createState() => _EcoHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _EcoHomePageState extends State<EcoHomePage> {
+  int _currentIndex = 0;
+  int _totalPoints = 120;
 
-  void _incrementCounter() {
+  final List<RewardItem> _rewards = const [
+    RewardItem(
+      title: 'Reusable Bottle',
+      description: 'Stay hydrated and reduce single-use plastic.',
+      points: 50,
+      icon: Icons.water_drop,
+    ),
+    RewardItem(
+      title: 'Seed Kit',
+      description: 'Start a small indoor garden at home.',
+      points: 80,
+      icon: Icons.spa,
+    ),
+    RewardItem(
+      title: 'Eco Badge',
+      description: 'Unlock a special badge for your profile.',
+      points: 30,
+      icon: Icons.emoji_events,
+    ),
+  ];
+
+  final List<LeaderboardEntry> _leaderboard = [
+    LeaderboardEntry(name: 'You', points: 120),
+    LeaderboardEntry(name: 'Alya', points: 150),
+    LeaderboardEntry(name: 'Raka', points: 95),
+  ];
+
+  void _selectPage(int index) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _currentIndex = index;
+    });
+  }
+
+  void _addPoints(int amount) {
+    setState(() {
+      _totalPoints += amount;
+      _leaderboard[0] = _leaderboard[0].copyWith(points: _totalPoints);
+    });
+  }
+
+  void _subtractPoints(int amount) {
+    setState(() {
+      _totalPoints = (_totalPoints - amount).clamp(0, 999999);
+      _leaderboard[0] = _leaderboard[0].copyWith(points: _totalPoints);
+    });
+  }
+
+  Future<void> _createEntry() async {
+    final result = await showDialog<_LeaderboardFormResult>(
+      context: context,
+      builder: (context) => const LeaderboardEntryDialog(),
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    setState(() {
+      _leaderboard.add(
+        LeaderboardEntry(name: result.name, points: result.points),
+      );
+    });
+  }
+
+  Future<void> _editEntry(int index) async {
+    final entry = _leaderboard[index];
+    final result = await showDialog<_LeaderboardFormResult>(
+      context: context,
+      builder: (context) => LeaderboardEntryDialog(
+        initialName: entry.name,
+        initialPoints: entry.points,
+      ),
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    setState(() {
+      _leaderboard[index] = entry.copyWith(
+        name: result.name,
+        points: result.points,
+      );
+
+      if (index == 0) {
+        _totalPoints = result.points;
+      }
+    });
+  }
+
+  void _deleteEntry(int index) {
+    if (index == 0) {
+      return;
+    }
+
+    setState(() {
+      _leaderboard.removeAt(index);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+    final pages = <Widget>[
+      RewardPage(
+        totalPoints: _totalPoints,
+        rewards: _rewards,
+        onEarnPoints: () => _addPoints(10),
+        onSpendPoints: () => _subtractPoints(10),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      LeaderboardPage(
+        entries: List<LeaderboardEntry>.from(_leaderboard)
+          ..sort((a, b) => b.points.compareTo(a.points)),
+        onAdd: _createEntry,
+        onEdit: _editEntry,
+        onDelete: _deleteEntry,
+      ),
+    ];
+
+    return Scaffold(
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 250),
+        child: pages[_currentIndex],
+      ),
+      bottomNavigationBar: EcoNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _selectPage,
+      ),
+    );
+  }
+}
+
+class EcoNavigationBar extends StatelessWidget {
+  const EcoNavigationBar({super.key, required this.currentIndex, required this.onTap});
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return NavigationBar(
+      selectedIndex: currentIndex,
+      onDestinationSelected: onTap,
+      destinations: const [
+        NavigationDestination(
+          icon: Icon(Icons.card_giftcard_outlined),
+          selectedIcon: Icon(Icons.card_giftcard),
+          label: 'Rewards',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.leaderboard_outlined),
+          selectedIcon: Icon(Icons.leaderboard),
+          label: 'Leaderboard',
+        ),
+      ],
+    );
+  }
+}
+
+class RewardPage extends StatelessWidget {
+  const RewardPage({
+    super.key,
+    required this.totalPoints,
+    required this.rewards,
+    required this.onEarnPoints,
+    required this.onSpendPoints,
+  });
+
+  final int totalPoints;
+  final List<RewardItem> rewards;
+  final VoidCallback onEarnPoints;
+  final VoidCallback onSpendPoints;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SafeArea(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              colorScheme.primary.withOpacity(0.9),
+              colorScheme.surface,
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              title: const Text('Eco Rewards'),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                child: Card(
+                  color: colorScheme.primaryContainer,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Your green score',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '$totalPoints points',
+                          style: Theme.of(context)
+                              .textTheme
+                              .displaySmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: FilledButton.icon(
+                                onPressed: onEarnPoints,
+                                icon: const Icon(Icons.add_circle_outline),
+                                label: const Text('Earn 10'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: onSpendPoints,
+                                icon: const Icon(Icons.remove_circle_outline),
+                                label: const Text('Spend 10'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate.fixed([
+                  Text(
+                    'Available rewards',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  for (final reward in rewards) ...[
+                    RewardCard(reward: reward, pointsBalance: totalPoints),
+                    const SizedBox(height: 12),
+                  ],
+                ]),
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    );
+  }
+}
+
+class RewardCard extends StatelessWidget {
+  const RewardCard({super.key, required this.reward, required this.pointsBalance});
+
+  final RewardItem reward;
+  final int pointsBalance;
+
+  @override
+  Widget build(BuildContext context) {
+    final canRedeem = pointsBalance >= reward.points;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 24,
+              child: Icon(reward.icon),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          reward.title,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      Chip(label: Text('${reward.points} pts')),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(reward.description),
+                  const SizedBox(height: 12),
+                  Text(
+                    canRedeem ? 'Ready to redeem' : 'Keep tracking habits to unlock this reward',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+class LeaderboardPage extends StatelessWidget {
+  const LeaderboardPage({
+    super.key,
+    required this.entries,
+    required this.onAdd,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final List<LeaderboardEntry> entries;
+  final VoidCallback onAdd;
+  final ValueChanged<int> onEdit;
+  final ValueChanged<int> onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Leaderboard CRUD',
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                FilledButton.icon(
+                  onPressed: onAdd,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Manage user points locally for the leaderboard.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.separated(
+                itemCount: entries.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final entry = entries[index];
+                  return Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        child: Text('${index + 1}'),
+                      ),
+                      title: Text(entry.name),
+                      subtitle: Text('${entry.points} points'),
+                      trailing: Wrap(
+                        spacing: 8,
+                        children: [
+                          IconButton(
+                            onPressed: () => onEdit(index),
+                            icon: const Icon(Icons.edit_outlined),
+                            tooltip: 'Edit points',
+                          ),
+                          IconButton(
+                            onPressed: index == 0 ? null : () => onDelete(index),
+                            icon: const Icon(Icons.delete_outline),
+                            tooltip: 'Delete entry',
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class LeaderboardEntryDialog extends StatefulWidget {
+  const LeaderboardEntryDialog({super.key, this.initialName = '', this.initialPoints = 0});
+
+  final String initialName;
+  final int initialPoints;
+
+  @override
+  State<LeaderboardEntryDialog> createState() => _LeaderboardEntryDialogState();
+}
+
+class _LeaderboardEntryDialogState extends State<LeaderboardEntryDialog> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _pointsController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.initialName);
+    _pointsController = TextEditingController(text: widget.initialPoints.toString());
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _pointsController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final name = _nameController.text.trim();
+    final points = int.tryParse(_pointsController.text.trim());
+
+    if (name.isEmpty || points == null) {
+      return;
+    }
+
+    Navigator.of(context).pop(
+      _LeaderboardFormResult(name: name, points: points),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Leaderboard entry'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _nameController,
+            decoration: const InputDecoration(labelText: 'Name'),
+            textInputAction: TextInputAction.next,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _pointsController,
+            decoration: const InputDecoration(labelText: 'Points'),
+            keyboardType: TextInputType.number,
+            onSubmitted: (_) => _submit(),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: const Text('Save'),
+        ),
+      ],
+    );
+  }
+}
+
+class RewardItem {
+  const RewardItem({
+    required this.title,
+    required this.description,
+    required this.points,
+    required this.icon,
+  });
+
+  final String title;
+  final String description;
+  final int points;
+  final IconData icon;
+}
+
+class LeaderboardEntry {
+  const LeaderboardEntry({required this.name, required this.points});
+
+  final String name;
+  final int points;
+
+  LeaderboardEntry copyWith({String? name, int? points}) {
+    return LeaderboardEntry(
+      name: name ?? this.name,
+      points: points ?? this.points,
+    );
+  }
+}
+
+class _LeaderboardFormResult {
+  const _LeaderboardFormResult({required this.name, required this.points});
+
+  final String name;
+  final int points;
 }
