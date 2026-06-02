@@ -1,6 +1,6 @@
 {
-    "name": "eco_habit_tracker",
-    "short_name": "eco_habit_tracker",
+    "name": "act_for_earth",
+    "short_name": "act_for_earth",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

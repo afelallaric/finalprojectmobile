@@ -1,4 +1,4 @@
-# eco_habit_tracker
+# act_for_earth
 
 A new Flutter project.
 
