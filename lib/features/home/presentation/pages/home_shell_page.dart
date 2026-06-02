@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:act_for_earth/features/leaderboard/data/leaderboard_firestore_service.dart';
 import 'package:act_for_earth/features/leaderboard/domain/leaderboard_entry.dart';
 import 'package:act_for_earth/features/leaderboard/presentation/widgets/leaderboard_entry_dialog.dart';
 import 'package:act_for_earth/features/leaderboard/presentation/pages/leaderboard_page.dart';
@@ -15,6 +18,11 @@ class HomeShellPage extends StatefulWidget {
 class _HomeShellPageState extends State<HomeShellPage> {
   int _currentIndex = 0;
   int _totalPoints = 120;
+  bool _isLeaderboardLoading = true;
+  String? _leaderboardError;
+
+  late final LeaderboardFirestoreService _leaderboardService;
+  StreamSubscription<List<LeaderboardEntry>>? _leaderboardSubscription;
 
   final List<RewardItem> _rewards = const [
     RewardItem(
@@ -37,11 +45,82 @@ class _HomeShellPageState extends State<HomeShellPage> {
     ),
   ];
 
-  final List<LeaderboardEntry> _leaderboard = [
-    const LeaderboardEntry(name: 'You', points: 120),
-    const LeaderboardEntry(name: 'Alya', points: 150),
-    const LeaderboardEntry(name: 'Raka', points: 95),
-  ];
+  List<LeaderboardEntry> _leaderboard = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _leaderboardService = LeaderboardFirestoreService();
+    _initializeLeaderboard();
+  }
+
+  @override
+  void dispose() {
+    _leaderboardSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initializeLeaderboard() async {
+    try {
+      await _leaderboardService.seedDefaults(const [
+        LeaderboardEntry(
+          id: LeaderboardFirestoreService.currentUserDocId,
+          name: 'You',
+          points: 120,
+        ),
+        LeaderboardEntry(name: 'Alya', points: 150),
+        LeaderboardEntry(name: 'Raka', points: 95),
+      ]);
+
+      _leaderboardSubscription = _leaderboardService.watchEntries().listen(
+        (entries) {
+          if (!mounted) {
+            return;
+          }
+
+          final currentUser = _findCurrentUser(entries);
+
+          setState(() {
+            _leaderboard = entries;
+            _totalPoints = currentUser?.points ?? _totalPoints;
+            _isLeaderboardLoading = false;
+            _leaderboardError = null;
+          });
+        },
+        onError: (Object error) {
+          if (!mounted) {
+            return;
+          }
+
+          setState(() {
+            _isLeaderboardLoading = false;
+            _leaderboardError = error.toString();
+          });
+        },
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isLeaderboardLoading = false;
+        _leaderboardError = error.toString();
+      });
+    }
+  }
+
+  LeaderboardEntry? _findCurrentUser(List<LeaderboardEntry> entries) {
+    for (final entry in entries) {
+      if (entry.id == LeaderboardFirestoreService.currentUserDocId) {
+        return entry;
+      }
+    }
+
+    return null;
+  }
+
+  LeaderboardEntry? get _currentUser => _findCurrentUser(_leaderboard);
 
   void _selectPage(int index) {
     setState(() {
@@ -49,18 +128,24 @@ class _HomeShellPageState extends State<HomeShellPage> {
     });
   }
 
-  void _addPoints(int amount) {
-    setState(() {
-      _totalPoints += amount;
-      _leaderboard[0] = _leaderboard[0].copyWith(points: _totalPoints);
-    });
+  Future<void> _addPoints(int amount) async {
+    final currentUser = _currentUser;
+    if (currentUser == null) {
+      return;
+    }
+
+    final updatedPoints = currentUser.points + amount;
+    await _leaderboardService.setCurrentUserPoints(updatedPoints);
   }
 
-  void _subtractPoints(int amount) {
-    setState(() {
-      _totalPoints = (_totalPoints - amount).clamp(0, 999999);
-      _leaderboard[0] = _leaderboard[0].copyWith(points: _totalPoints);
-    });
+  Future<void> _subtractPoints(int amount) async {
+    final currentUser = _currentUser;
+    if (currentUser == null) {
+      return;
+    }
+
+    final updatedPoints = (currentUser.points - amount).clamp(0, 999999);
+    await _leaderboardService.setCurrentUserPoints(updatedPoints);
   }
 
   Future<void> _createEntry() async {
@@ -73,15 +158,13 @@ class _HomeShellPageState extends State<HomeShellPage> {
       return;
     }
 
-    setState(() {
-      _leaderboard.add(
-        LeaderboardEntry(name: result.name, points: result.points),
-      );
-    });
+    await _leaderboardService.createEntry(
+      name: result.name,
+      points: result.points,
+    );
   }
 
-  Future<void> _editEntry(int index) async {
-    final entry = _leaderboard[index];
+  Future<void> _editEntry(LeaderboardEntry entry) async {
     final result = await showDialog<LeaderboardFormResult>(
       context: context,
       builder: (context) => LeaderboardEntryDialog(
@@ -94,26 +177,20 @@ class _HomeShellPageState extends State<HomeShellPage> {
       return;
     }
 
-    setState(() {
-      _leaderboard[index] = entry.copyWith(
+    await _leaderboardService.updateEntry(
+      entry.copyWith(
         name: result.name,
         points: result.points,
-      );
-
-      if (index == 0) {
-        _totalPoints = result.points;
-      }
-    });
+      ),
+    );
   }
 
-  void _deleteEntry(int index) {
-    if (index == 0) {
+  Future<void> _deleteEntry(LeaderboardEntry entry) async {
+    if (entry.id == LeaderboardFirestoreService.currentUserDocId) {
       return;
     }
 
-    setState(() {
-      _leaderboard.removeAt(index);
-    });
+    await _leaderboardService.deleteEntry(entry.id);
   }
 
   @override
@@ -122,12 +199,18 @@ class _HomeShellPageState extends State<HomeShellPage> {
       RewardPage(
         totalPoints: _totalPoints,
         rewards: _rewards,
-        onEarnPoints: () => _addPoints(10),
-        onSpendPoints: () => _subtractPoints(10),
+        onEarnPoints: () {
+          _addPoints(10);
+        },
+        onSpendPoints: () {
+          _subtractPoints(10);
+        },
       ),
       LeaderboardPage(
         entries: List<LeaderboardEntry>.from(_leaderboard)
           ..sort((a, b) => b.points.compareTo(a.points)),
+        isLoading: _isLeaderboardLoading,
+        errorMessage: _leaderboardError,
         onAdd: _createEntry,
         onEdit: _editEntry,
         onDelete: _deleteEntry,

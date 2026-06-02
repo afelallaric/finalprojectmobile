@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "605113789641",
+    "project_id": "actforearth-92234",
+    "storage_bucket": "actforearth-92234.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:605113789641:android:e773fd51996537ea15b118",
+        "android_client_info": {
+          "package_name": "com.example.act_for_earth"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdLDqSaNrLvotfNUS3Iw24tlsIiKry2dg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

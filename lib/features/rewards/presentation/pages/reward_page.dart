@@ -24,7 +24,10 @@ class RewardPage extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [colorScheme.primary.withOpacity(0.9), colorScheme.surface],
+            colors: [
+              colorScheme.primary.withValues(alpha: 0.9),
+              colorScheme.surface,
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
