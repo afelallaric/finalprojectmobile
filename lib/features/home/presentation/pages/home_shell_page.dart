@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:act_for_earth/features/leaderboard/data/leaderboard_firestore_service.dart';
 import 'package:act_for_earth/features/leaderboard/domain/leaderboard_entry.dart';
+import 'package:act_for_earth/features/challenges/presentation/pages/challenges_page.dart';
 import 'package:act_for_earth/features/leaderboard/presentation/widgets/leaderboard_entry_dialog.dart';
 import 'package:act_for_earth/features/leaderboard/presentation/pages/leaderboard_page.dart';
 import 'package:act_for_earth/features/rewards/domain/reward_item.dart';
@@ -215,6 +216,7 @@ class _HomeShellPageState extends State<HomeShellPage> {
         onEdit: _editEntry,
         onDelete: _deleteEntry,
       ),
+      const ChallengesPage(),
     ];
 
     return Scaffold(
@@ -255,6 +257,11 @@ class EcoNavigationBar extends StatelessWidget {
           icon: Icon(Icons.leaderboard_outlined),
           selectedIcon: Icon(Icons.leaderboard),
           label: 'Leaderboard',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.eco_outlined),
+          selectedIcon: Icon(Icons.eco),
+          label: 'Challenges',
         ),
       ],
     );

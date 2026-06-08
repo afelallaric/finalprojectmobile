@@ -169,47 +169,45 @@ class MyChallengiesPage extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (userChallenge.status != 'completed')
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _showUpdateProgressDialog(
-                            context,
-                            userChallenge,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => _showUpdateProgressDialog(
+                                context,
+                                userChallenge,
+                              ),
+                              icon: const Icon(Icons.edit),
+                              label: const Text('Update Progress'),
+                            ),
                           ),
-                          icon: const Icon(Icons.edit),
-                          label: const Text('Update'),
-                        ),
-                      ),
-                    if (userChallenge.status != 'completed')
-                      const SizedBox(width: 8),
-                    if (userChallenge.status != 'completed')
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: () =>
-                              onCompleteChallenge(userChallenge.userChallengeId),
-                          icon: const Icon(Icons.check),
-                          label: const Text('Complete'),
-                        ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: () =>
+                                  onCompleteChallenge(userChallenge.userChallengeId),
+                              icon: const Icon(Icons.check),
+                              label: const Text('Complete'),
+                            ),
+                          ),
+                        ],
                       ),
                     if (userChallenge.status == 'completed')
-                      Expanded(
-                        child: FilledButton(
-                          enabled: false,
-                          onPressed: null,
-                          child: const Text('Completed'),
-                        ),
+                      FilledButton(
+                        onPressed: null,
+                        child: const Text('✓ Completed'),
                       ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () =>
-                            onLeaveChallenge(userChallenge.userChallengeId),
-                        icon: const Icon(Icons.close),
-                        label: const Text('Leave'),
-                      ),
+                    if (userChallenge.status == 'completed')
+                      const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: () =>
+                          onLeaveChallenge(userChallenge.userChallengeId),
+                      icon: const Icon(Icons.close),
+                      label: const Text('Leave Challenge'),
                     ),
                   ],
                 ),
