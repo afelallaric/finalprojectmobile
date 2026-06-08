@@ -10,7 +10,12 @@ import 'package:act_for_earth/features/rewards/presentation/pages/reward_page.da
 import 'package:flutter/material.dart';
 
 class HomeShellPage extends StatefulWidget {
-  const HomeShellPage({super.key});
+  final VoidCallback? onLogout;
+
+  const HomeShellPage({
+    super.key,
+    this.onLogout,
+  });
 
   @override
   State<HomeShellPage> createState() => _HomeShellPageState();
@@ -220,6 +225,38 @@ class _HomeShellPageState extends State<HomeShellPage> {
     ];
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Act For Earth'),
+        actions: [
+          if (widget.onLogout != null)
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Logout',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text('Are you sure you want to logout?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          widget.onLogout!();
+                        },
+                        child: const Text('Logout'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 250),
         child: pages[_currentIndex],
