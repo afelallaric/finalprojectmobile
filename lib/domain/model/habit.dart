@@ -8,6 +8,7 @@ class Habit {
     required this.category,
     required this.targetFrequency,
     required this.createdAt,
+    this.completionDates = const [],
   });
 
   final String habitId;
@@ -16,6 +17,7 @@ class Habit {
   final String category;
   final int targetFrequency;
   final DateTime createdAt;
+  final List<DateTime> completionDates;
 
   factory Habit.fromFirestore(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data();
@@ -26,6 +28,10 @@ class Habit {
       category: (data['category'] as String?) ?? 'General',
       targetFrequency: (data['targetFrequency'] as int?) ?? 1,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      completionDates: (data['completionDates'] as List<dynamic>?)
+              ?.map((e) => (e as Timestamp).toDate())
+              .toList() ??
+          const [],
     );
   }
 
@@ -36,6 +42,7 @@ class Habit {
       'category': category,
       'targetFrequency': targetFrequency,
       'createdAt': Timestamp.fromDate(createdAt),
+      'completionDates': completionDates.map((e) => Timestamp.fromDate(e)).toList(),
     };
   }
 
@@ -46,6 +53,7 @@ class Habit {
     String? category,
     int? targetFrequency,
     DateTime? createdAt,
+    List<DateTime>? completionDates,
   }) {
     return Habit(
       habitId: habitId ?? this.habitId,
@@ -54,6 +62,7 @@ class Habit {
       category: category ?? this.category,
       targetFrequency: targetFrequency ?? this.targetFrequency,
       createdAt: createdAt ?? this.createdAt,
+      completionDates: completionDates ?? this.completionDates,
     );
   }
 }
