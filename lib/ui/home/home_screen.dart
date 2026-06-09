@@ -11,6 +11,9 @@ import 'package:act_for_earth/ui/habit_list/habit_list_screen.dart';
 import 'package:act_for_earth/ui/habit_list/habit_list_viewmodel.dart';
 import 'package:act_for_earth/ui/leaderboard/leaderboard_screen.dart';
 import 'package:act_for_earth/ui/leaderboard/widgets/leaderboard_entry_dialog.dart';
+import 'package:act_for_earth/data/remote/reward_firestore_service.dart';
+import 'package:act_for_earth/domain/model/user_reward.dart';
+import 'package:act_for_earth/ui/home/ai_suggestions_page.dart';
 import 'package:act_for_earth/ui/rewards/reward_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -225,14 +228,24 @@ class _HomeShellPageState extends State<HomeShellPage> {
   @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
-      RewardPage(
-        totalPoints: _totalPoints,
-        rewards: _rewards,
-        onEarnPoints: () {
-          _addPoints(10);
-        },
-        onSpendPoints: () {
-          _subtractPoints(10);
+      StreamBuilder<UserReward?>(
+        stream: RewardFirestoreService().watchUserReward(widget.currentUser.id),
+        builder: (context, snapshot) {
+          final userReward = snapshot.data;
+          final totalPoints = userReward?.points ?? 0;
+          final badges = userReward?.badges ?? [];
+
+          return RewardPage(
+            totalPoints: totalPoints,
+            rewards: _rewards,
+            onEarnPoints: () {
+              RewardFirestoreService().addPoints(widget.currentUser.id, 10);
+            },
+            onSpendPoints: () {
+              RewardFirestoreService().subtractPoints(widget.currentUser.id, 10);
+            },
+            badges: badges,
+          );
         },
       ),
       LeaderboardPage(
@@ -246,6 +259,10 @@ class _HomeShellPageState extends State<HomeShellPage> {
       ),
       ChallengesPage(authRepository: widget.authRepository),
       HabitListScreen(viewModel: _habitListViewModel),
+      AISuggestionsPage(
+        userId: widget.currentUser.id,
+        habitRepository: widget.habitRepository,
+      ),
     ];
 
     return Scaffold(
@@ -328,6 +345,11 @@ class EcoNavigationBar extends StatelessWidget {
           icon: Icon(Icons.event_repeat_outlined),
           selectedIcon: Icon(Icons.event_repeat),
           label: 'Habits',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.psychology_outlined),
+          selectedIcon: Icon(Icons.psychology),
+          label: 'AI Suggest',
         ),
       ],
     );

@@ -147,10 +147,23 @@ class HabitListScreen extends StatelessWidget {
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final habit = habits[index];
+        final today = DateTime.now();
+        final todayDateOnly = DateTime(today.year, today.month, today.day);
+        final hasCompletedToday = viewModel.logs.any((log) =>
+            log.habitId == habit.habitId &&
+            log.date.year == todayDateOnly.year &&
+            log.date.month == todayDateOnly.month &&
+            log.date.day == todayDateOnly.day &&
+            log.status == true);
 
         return Card(
           child: ListTile(
-            leading: CircleAvatar(child: Text('${index + 1}')),
+            leading: Checkbox(
+              value: hasCompletedToday,
+              onChanged: (val) {
+                viewModel.toggleHabitToday(habit.habitId, hasCompletedToday);
+              },
+            ),
             title: Text(habit.title),
             subtitle: Text(
               '${habit.category} • Target ${habit.targetFrequency}/week',

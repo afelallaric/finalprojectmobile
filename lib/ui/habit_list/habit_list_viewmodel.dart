@@ -4,6 +4,9 @@ import 'package:act_for_earth/domain/model/habit.dart';
 import 'package:act_for_earth/domain/repository/habit_repository.dart';
 import 'package:flutter/foundation.dart';
 
+import 'package:act_for_earth/data/remote/habit_log_firestore_service.dart';
+import 'package:act_for_earth/domain/model/habit_log.dart';
+
 class HabitListViewModel extends ChangeNotifier {
   HabitListViewModel({
     required HabitRepository repository,
@@ -12,14 +15,18 @@ class HabitListViewModel extends ChangeNotifier {
 
   final HabitRepository _repository;
   final String userId;
+  final _logService = HabitLogFirestoreService();
 
   List<Habit> _habits = const [];
+  List<HabitLog> _logs = const [];
   bool _isLoading = true;
   String? _errorMessage;
   StreamSubscription<List<Habit>>? _subscription;
+  StreamSubscription<List<HabitLog>>? _logsSubscription;
   bool _initialized = false;
 
   List<Habit> get habits => _habits;
+  List<HabitLog> get logs => _logs;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -51,11 +58,22 @@ class HabitListViewModel extends ChangeNotifier {
               notifyListeners();
             },
           );
+
+      _logsSubscription = _logService.watchAllLogs().listen(
+            (logs) {
+              _logs = logs;
+              notifyListeners();
+            },
+          );
     } catch (error) {
       _isLoading = false;
       _errorMessage = error.toString();
       notifyListeners();
     }
+  }
+
+  Future<void> toggleHabitToday(String habitId, bool currentStatus) async {
+    await _logService.logHabit(habitId, DateTime.now(), !currentStatus);
   }
 
   Future<void> addHabit({
@@ -96,6 +114,7 @@ class HabitListViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _subscription?.cancel();
+    _logsSubscription?.cancel();
     super.dispose();
   }
 }

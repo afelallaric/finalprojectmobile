@@ -9,12 +9,14 @@ class RewardPage extends StatelessWidget {
     required this.rewards,
     required this.onEarnPoints,
     required this.onSpendPoints,
+    this.badges = const [],
   });
 
   final int totalPoints;
   final List<RewardItem> rewards;
   final VoidCallback onEarnPoints;
   final VoidCallback onSpendPoints;
+  final List<String> badges;
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +82,47 @@ class RewardPage extends StatelessWidget {
                             ),
                           ],
                         ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+             SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Your Badges',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        badges.isEmpty
+                            ? Text(
+                                'No badges earned yet. Complete habits and suggestions to earn points!',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              )
+                            : Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: badges.map((badge) {
+                                  return Chip(
+                                    avatar: const Icon(Icons.stars, color: Colors.amber),
+                                    label: Text(badge),
+                                    backgroundColor: colorScheme.secondaryContainer,
+                                  );
+                                }).toList(),
+                              ),
                       ],
                     ),
                   ),
