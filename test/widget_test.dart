@@ -53,9 +53,6 @@ class _FakeHabitRepository implements HabitRepository {
   Future<void> deleteHabit(String habitId) async {}
 
   @override
-  Future<void> seedDefaultHabits({required String userId}) async {}
-
-  @override
   Stream<List<Habit>> watchHabits(String userId) =>
       const Stream<List<Habit>>.empty();
 

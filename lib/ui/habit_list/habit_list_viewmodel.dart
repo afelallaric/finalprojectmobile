@@ -41,8 +41,6 @@ class HabitListViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _repository.seedDefaultHabits(userId: userId);
-
       _subscription = _repository
           .watchHabits(userId)
           .listen(
@@ -104,6 +102,28 @@ class HabitListViewModel extends ChangeNotifier {
         category: category,
         targetFrequency: targetFrequency,
       ),
+    );
+  }
+
+  Future<void> toggleHabitCompletion(Habit habit, DateTime date) async {
+    final updatedDates = List<DateTime>.from(habit.completionDates);
+    final isDone = updatedDates.any((d) =>
+        d.year == date.year &&
+        d.month == date.month &&
+        d.day == date.day);
+
+    if (isDone) {
+      updatedDates.removeWhere((d) =>
+          d.year == date.year &&
+          d.month == date.month &&
+          d.day == date.day);
+    } else {
+      // Keep it consistent by storing the date at mid-day
+      updatedDates.add(DateTime(date.year, date.month, date.day, 12, 0));
+    }
+
+    await _repository.updateHabit(
+      habit.copyWith(completionDates: updatedDates),
     );
   }
 

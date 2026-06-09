@@ -14,11 +14,6 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
-  Future<void> seedDefaultHabits({required String userId}) {
-    return _remoteDataSource.seedDefaultHabits(userId: userId);
-  }
-
-  @override
   Future<void> createHabit(Habit habit) {
     return _remoteDataSource.createHabit(habit);
   }
