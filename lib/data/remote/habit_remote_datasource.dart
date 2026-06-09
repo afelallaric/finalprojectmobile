@@ -25,48 +25,6 @@ class HabitRemoteDataSource {
         );
   }
 
-  Future<void> seedDefaultHabits({required String userId}) async {
-    final snapshot = await _collection
-        .where('userId', isEqualTo: userId)
-        .limit(1)
-        .get();
-    if (snapshot.docs.isNotEmpty) {
-      return;
-    }
-
-    final createdAt = DateTime.now();
-    final batch = _db.batch();
-    final defaults = [
-      Habit(
-        userId: userId,
-        title: 'Recycle plastic waste',
-        category: 'Waste',
-        targetFrequency: 7,
-        createdAt: createdAt,
-      ),
-      Habit(
-        userId: userId,
-        title: 'Bike to school',
-        category: 'Transport',
-        targetFrequency: 3,
-        createdAt: createdAt,
-      ),
-      Habit(
-        userId: userId,
-        title: 'Save electricity at night',
-        category: 'Energy',
-        targetFrequency: 5,
-        createdAt: createdAt,
-      ),
-    ];
-
-    for (final habit in defaults) {
-      batch.set(_collection.doc(), habit.toFirestore());
-    }
-
-    await batch.commit();
-  }
-
   Future<void> createHabit(Habit habit) async {
     await _collection.add(habit.toFirestore());
   }

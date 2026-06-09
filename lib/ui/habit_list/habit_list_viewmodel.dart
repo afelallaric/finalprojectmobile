@@ -34,8 +34,6 @@ class HabitListViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _repository.seedDefaultHabits(userId: userId);
-
       _subscription = _repository
           .watchHabits(userId)
           .listen(
