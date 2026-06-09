@@ -4,6 +4,9 @@ import 'package:act_for_earth/features/leaderboard/data/leaderboard_firestore_se
 import 'package:act_for_earth/features/leaderboard/domain/leaderboard_entry.dart';
 import 'package:act_for_earth/features/leaderboard/presentation/widgets/leaderboard_entry_dialog.dart';
 import 'package:act_for_earth/features/leaderboard/presentation/pages/leaderboard_page.dart';
+import 'package:act_for_earth/features/habits/data/habit_firestore_service.dart';
+import 'package:act_for_earth/features/habits/domain/habit.dart';
+import 'package:act_for_earth/features/habits/presentation/pages/habit_page.dart';
 import 'package:act_for_earth/features/rewards/domain/reward_item.dart';
 import 'package:act_for_earth/features/rewards/presentation/pages/reward_page.dart';
 import 'package:flutter/material.dart';
@@ -20,9 +23,13 @@ class _HomeShellPageState extends State<HomeShellPage> {
   int _totalPoints = 120;
   bool _isLeaderboardLoading = true;
   String? _leaderboardError;
+  bool _isHabitLoading = true;
+  String? _habitError;
 
   late final LeaderboardFirestoreService _leaderboardService;
+  late final HabitFirestoreService _habitService;
   StreamSubscription<List<LeaderboardEntry>>? _leaderboardSubscription;
+  StreamSubscription<List<Habit>>? _habitSubscription;
 
   final List<RewardItem> _rewards = const [
     RewardItem(
@@ -46,17 +53,21 @@ class _HomeShellPageState extends State<HomeShellPage> {
   ];
 
   List<LeaderboardEntry> _leaderboard = const [];
+  List<Habit> _habits = const [];
 
   @override
   void initState() {
     super.initState();
     _leaderboardService = LeaderboardFirestoreService();
+    _habitService = HabitFirestoreService();
     _initializeLeaderboard();
+    _initializeHabits();
   }
 
   @override
   void dispose() {
     _leaderboardSubscription?.cancel();
+    _habitSubscription?.cancel();
     super.dispose();
   }
 
@@ -106,6 +117,49 @@ class _HomeShellPageState extends State<HomeShellPage> {
       setState(() {
         _isLeaderboardLoading = false;
         _leaderboardError = error.toString();
+      });
+    }
+  }
+
+  Future<void> _initializeHabits() async {
+    try {
+      await _habitService.seedDefaultHabits(
+        userId: HabitFirestoreService.currentUserId,
+      );
+
+      _habitSubscription = _habitService
+          .watchHabits(HabitFirestoreService.currentUserId)
+          .listen(
+            (habits) {
+              if (!mounted) {
+                return;
+              }
+
+              setState(() {
+                _habits = habits;
+                _isHabitLoading = false;
+                _habitError = null;
+              });
+            },
+            onError: (Object error) {
+              if (!mounted) {
+                return;
+              }
+
+              setState(() {
+                _isHabitLoading = false;
+                _habitError = error.toString();
+              });
+            },
+          );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isHabitLoading = false;
+        _habitError = error.toString();
       });
     }
   }
@@ -178,10 +232,7 @@ class _HomeShellPageState extends State<HomeShellPage> {
     }
 
     await _leaderboardService.updateEntry(
-      entry.copyWith(
-        name: result.name,
-        points: result.points,
-      ),
+      entry.copyWith(name: result.name, points: result.points),
     );
   }
 
@@ -191,6 +242,49 @@ class _HomeShellPageState extends State<HomeShellPage> {
     }
 
     await _leaderboardService.deleteEntry(entry.id);
+  }
+
+  Future<void> _createHabit() async {
+    final result = await showHabitFormDialog(context);
+
+    if (result == null) {
+      return;
+    }
+
+    await _habitService.createHabit(
+      Habit(
+        userId: HabitFirestoreService.currentUserId,
+        title: result.title,
+        category: result.category,
+        targetFrequency: result.targetFrequency,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
+  Future<void> _editHabit(Habit habit) async {
+    final result = await showHabitFormDialog(
+      context,
+      initialTitle: habit.title,
+      initialCategory: habit.category,
+      initialTargetFrequency: habit.targetFrequency,
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    await _habitService.updateHabit(
+      habit.copyWith(
+        title: result.title,
+        category: result.category,
+        targetFrequency: result.targetFrequency,
+      ),
+    );
+  }
+
+  Future<void> _deleteHabit(Habit habit) async {
+    await _habitService.deleteHabit(habit.habitId);
   }
 
   @override
@@ -214,6 +308,15 @@ class _HomeShellPageState extends State<HomeShellPage> {
         onAdd: _createEntry,
         onEdit: _editEntry,
         onDelete: _deleteEntry,
+      ),
+      HabitPage(
+        habits: List<Habit>.from(_habits)
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
+        isLoading: _isHabitLoading,
+        errorMessage: _habitError,
+        onAdd: _createHabit,
+        onEdit: _editHabit,
+        onDelete: _deleteHabit,
       ),
     ];
 
@@ -255,6 +358,11 @@ class EcoNavigationBar extends StatelessWidget {
           icon: Icon(Icons.leaderboard_outlined),
           selectedIcon: Icon(Icons.leaderboard),
           label: 'Leaderboard',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.event_repeat_outlined),
+          selectedIcon: Icon(Icons.event_repeat),
+          label: 'Habits',
         ),
       ],
     );
