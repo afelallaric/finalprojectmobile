@@ -33,6 +33,7 @@ class ActForEarthApp extends StatelessWidget {
           // User is authenticated
           if (snapshot.hasData && snapshot.data == true) {
             return HomeShellPage(
+              authRepository: authRepository,
               onLogout: () {
                 authRepository.logout();
               },

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:act_for_earth/features/auth/domain/repositories/auth_repository.dart';
 import 'package:act_for_earth/features/challenges/data/challenge_firestore_service.dart';
 import 'package:act_for_earth/features/challenges/data/user_challenge_firestore_service.dart';
 import 'package:act_for_earth/features/challenges/domain/challenge.dart';
@@ -9,14 +10,16 @@ import 'package:act_for_earth/features/challenges/presentation/pages/my_challeng
 import 'package:flutter/material.dart';
 
 class ChallengesPage extends StatefulWidget {
-  const ChallengesPage({super.key});
+  final AuthRepository authRepository;
+
+  const ChallengesPage({super.key, required this.authRepository});
 
   @override
   State<ChallengesPage> createState() => _ChallengePageState();
 }
 
 class _ChallengePageState extends State<ChallengesPage> {
-  static const String _currentUserId = 'current_user';
+  late String _currentUserId;
 
   int _currentTabIndex = 0;
   bool _isLoading = true;
@@ -36,7 +39,7 @@ class _ChallengePageState extends State<ChallengesPage> {
     super.initState();
     _challengeService = ChallengeFirestoreService();
     _userChallengeService = UserChallengeFirestoreService();
-    _initializeChallenges();
+    _initializeAuthAndChallenges();
   }
 
   @override
@@ -44,6 +47,28 @@ class _ChallengePageState extends State<ChallengesPage> {
     _challengesSubscription?.cancel();
     _userChallengesSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<void> _initializeAuthAndChallenges() async {
+    try {
+      final currentUser = await widget.authRepository.getCurrentUser();
+      if (currentUser == null) {
+        if (!mounted) return;
+        setState(() {
+          _error = 'User not authenticated';
+          _isLoading = false;
+        });
+        return;
+      }
+      _currentUserId = currentUser.id;
+      _initializeChallenges();
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Error loading user: ${error.toString()}';
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _initializeChallenges() async {
@@ -102,6 +127,29 @@ class _ChallengePageState extends State<ChallengesPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Show error if authentication failed
+    if (_error != null && _error!.contains('User not authenticated')) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Challenges'),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                _error ?? 'An error occurred',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(

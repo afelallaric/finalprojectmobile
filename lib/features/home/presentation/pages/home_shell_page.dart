@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:act_for_earth/features/auth/domain/repositories/auth_repository.dart';
 import 'package:act_for_earth/features/leaderboard/data/leaderboard_firestore_service.dart';
 import 'package:act_for_earth/features/leaderboard/domain/leaderboard_entry.dart';
 import 'package:act_for_earth/features/challenges/presentation/pages/challenges_page.dart';
@@ -10,10 +11,12 @@ import 'package:act_for_earth/features/rewards/presentation/pages/reward_page.da
 import 'package:flutter/material.dart';
 
 class HomeShellPage extends StatefulWidget {
+  final AuthRepository authRepository;
   final VoidCallback? onLogout;
 
   const HomeShellPage({
     super.key,
+    required this.authRepository,
     this.onLogout,
   });
 
@@ -221,7 +224,7 @@ class _HomeShellPageState extends State<HomeShellPage> {
         onEdit: _editEntry,
         onDelete: _deleteEntry,
       ),
-      const ChallengesPage(),
+      ChallengesPage(authRepository: widget.authRepository),
     ];
 
     return Scaffold(
