@@ -1,15 +1,19 @@
 import 'package:act_for_earth/app/theme/app_theme.dart';
-import 'package:act_for_earth/features/auth/domain/repositories/auth_repository.dart';
-import 'package:act_for_earth/features/auth/presentation/pages/auth_shell_page.dart';
-import 'package:act_for_earth/features/home/presentation/pages/home_shell_page.dart';
+import 'package:act_for_earth/domain/repository/habit_repository.dart';
+import 'package:act_for_earth/domain/model/user_model.dart';
+import 'package:act_for_earth/domain/repository/auth_repository.dart';
+import 'package:act_for_earth/ui/auth/auth_shell_screen.dart';
+import 'package:act_for_earth/ui/home/home_screen.dart';
 import 'package:flutter/material.dart';
 
 class ActForEarthApp extends StatelessWidget {
   final AuthRepository authRepository;
+  final HabitRepository habitRepository;
 
   const ActForEarthApp({
     super.key,
     required this.authRepository,
+    required this.habitRepository,
   });
 
   @override
@@ -18,24 +22,25 @@ class ActForEarthApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'ActForEarth',
       theme: AppTheme.light(),
-      home: StreamBuilder<bool>(
+      home: StreamBuilder<UserModel?>(
         stream: _authStateStream(),
         builder: (context, snapshot) {
           // While checking authentication state
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
+              body: Center(child: CircularProgressIndicator()),
             );
           }
 
           // User is authenticated
-          if (snapshot.hasData && snapshot.data == true) {
+          final currentUser = snapshot.data;
+          if (currentUser != null) {
             return HomeShellPage(
+              currentUser: currentUser,
               authRepository: authRepository,
-              onLogout: () {
-                authRepository.logout();
+              habitRepository: habitRepository,
+              onLogout: () async {
+                await authRepository.logout();
               },
             );
           }
@@ -52,9 +57,8 @@ class ActForEarthApp extends StatelessWidget {
     );
   }
 
-  /// Stream that emits true when user is authenticated, false otherwise
-  Stream<bool> _authStateStream() {
-    return authRepository.authStateChanges.map((user) => user != null);
+  /// Stream that emits the signed-in user model or null when signed out.
+  Stream<UserModel?> _authStateStream() {
+    return authRepository.authStateChanges;
   }
 }
-
