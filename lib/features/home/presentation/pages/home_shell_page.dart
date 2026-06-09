@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:act_for_earth/features/auth/domain/repositories/auth_repository.dart';
 import 'package:act_for_earth/features/leaderboard/data/leaderboard_firestore_service.dart';
 import 'package:act_for_earth/features/leaderboard/domain/leaderboard_entry.dart';
+import 'package:act_for_earth/features/challenges/presentation/pages/challenges_page.dart';
 import 'package:act_for_earth/features/leaderboard/presentation/widgets/leaderboard_entry_dialog.dart';
 import 'package:act_for_earth/features/leaderboard/presentation/pages/leaderboard_page.dart';
 import 'package:act_for_earth/features/habits/data/habit_firestore_service.dart';
@@ -12,7 +14,14 @@ import 'package:act_for_earth/features/rewards/presentation/pages/reward_page.da
 import 'package:flutter/material.dart';
 
 class HomeShellPage extends StatefulWidget {
-  const HomeShellPage({super.key});
+  final AuthRepository authRepository;
+  final VoidCallback? onLogout;
+
+  const HomeShellPage({
+    super.key,
+    required this.authRepository,
+    this.onLogout,
+  });
 
   @override
   State<HomeShellPage> createState() => _HomeShellPageState();
@@ -309,6 +318,7 @@ class _HomeShellPageState extends State<HomeShellPage> {
         onEdit: _editEntry,
         onDelete: _deleteEntry,
       ),
+      ChallengesPage(authRepository: widget.authRepository),
       HabitPage(
         habits: List<Habit>.from(_habits)
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
@@ -321,6 +331,38 @@ class _HomeShellPageState extends State<HomeShellPage> {
     ];
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Act For Earth'),
+        actions: [
+          if (widget.onLogout != null)
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Logout',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text('Are you sure you want to logout?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          widget.onLogout!();
+                        },
+                        child: const Text('Logout'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 250),
         child: pages[_currentIndex],
@@ -358,6 +400,11 @@ class EcoNavigationBar extends StatelessWidget {
           icon: Icon(Icons.leaderboard_outlined),
           selectedIcon: Icon(Icons.leaderboard),
           label: 'Leaderboard',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.eco_outlined),
+          selectedIcon: Icon(Icons.eco),
+          label: 'Challenges',
         ),
         NavigationDestination(
           icon: Icon(Icons.event_repeat_outlined),

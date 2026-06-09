@@ -1,9 +1,3 @@
-// 3. Create `lib/features/challenges/data/challenge_firestore_service.dart`:
-//    - CRUD: `createChallenge()`, `watchChallenges()`, `deleteChallenge()`
-//    - Seed: `seedDefaultChallenges()` (eco-themed: plastic-free, carbon footprint, etc.)
-//    - Batch operations for efficiency
-//    - Collection: `challenges`
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../domain/challenge.dart';
 
@@ -33,13 +27,31 @@ class ChallengeFirestoreService {
         title: 'Plastic-Free Week',
         description: 'Avoid using single-use plastics for one week.',
         duration: 7,
-        createdBy: 'admin',
+        createdBy: 'app',
       ),
       Challenge(
         title: 'Carbon Footprint Reduction',
         description: 'Reduce your carbon footprint by 20% this month.',
         duration: 30,
-        createdBy: 'admin',
+        createdBy: 'app',
+      ),
+      Challenge(
+        title: 'No Plastic for 3 Days',
+        description: 'Challenge yourself to go plastic-free for 3 consecutive days.',
+        duration: 3,
+        createdBy: 'app',
+      ),
+      Challenge(
+        title: 'Plant a Tree',
+        description: 'Plant at least one tree in your community.',
+        duration: 14,
+        createdBy: 'app',
+      ),
+      Challenge(
+        title: 'Energy Conservation Week',
+        description: 'Reduce your energy consumption by 30% for one week.',
+        duration: 7,
+        createdBy: 'app',
       ),
     ];
 
@@ -47,5 +59,7 @@ class ChallengeFirestoreService {
       final docRef = challengesRef.doc();
       batch.set(docRef, challenge.toFirestore());
     }
+
+    await batch.commit();
   }
 }

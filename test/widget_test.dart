@@ -9,11 +9,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:act_for_earth/app/app.dart';
+import 'package:act_for_earth/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:act_for_earth/features/auth/data/services/firebase_auth_service.dart';
+import 'package:act_for_earth/features/auth/data/services/user_firestore_service.dart';
 
 void main() {
   testWidgets('App boots smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const ActForEarthApp());
+    final authRepository = AuthRepositoryImpl(
+      firebaseAuthService: FirebaseAuthService(),
+      userFirestoreService: UserFirestoreService(),
+    );
+
+    await tester.pumpWidget(ActForEarthApp(authRepository: authRepository));
 
     // Verify the root MaterialApp is present.
     expect(find.byType(MaterialApp), findsOneWidget);
