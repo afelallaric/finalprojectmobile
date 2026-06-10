@@ -71,7 +71,8 @@ class _ChallengePageState extends State<ChallengesPage> {
 
   Future<void> _initializeChallenges() async {
     try {
-      await _challengeService.seedDefaultChallenges();
+      // Disabled - challenges already seeded in Firestore
+      // await _challengeService.seedDefaultChallenges();
 
       _challengesSubscription = _challengeService.watchChallenges().listen(
         (challenges) {
