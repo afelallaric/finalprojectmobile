@@ -21,7 +21,7 @@ class AvailableChallengesPage extends StatelessWidget {
   final bool isLoading;
   final String? error;
   final Function(String) onJoinChallenge;
-  final String currentUserId;
+  final String? currentUserId;
 
   Set<String> _getJoinedChallengeIds() {
     return userChallenges.map((uc) => uc.challengeId).toSet();
@@ -32,10 +32,12 @@ class AvailableChallengesPage extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         body: _buildContent(context),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _showCreateChallengeDialog(context),
-          child: const Icon(Icons.add),
-        ),
+        floatingActionButton: currentUserId != null
+            ? FloatingActionButton(
+                onPressed: () => _showCreateChallengeDialog(context),
+                child: const Icon(Icons.add),
+              )
+            : null,
       ),
     );
   }
@@ -113,9 +115,10 @@ class AvailableChallengesPage extends StatelessWidget {
   }
 
   void _showCreateChallengeDialog(BuildContext context) {
+    if (currentUserId == null) return;
     showDialog<void>(
       context: context,
-      builder: (context) => CreateChallengeDialog(currentUserId: currentUserId),
+      builder: (context) => CreateChallengeDialog(currentUserId: currentUserId!),
     );
   }
 }

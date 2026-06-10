@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class CreateChallengeDialog extends StatefulWidget {
   const CreateChallengeDialog({super.key, required this.currentUserId});
 
-  final String currentUserId;
+  final String? currentUserId;
 
   @override
   State<CreateChallengeDialog> createState() => _CreateChallengeDialogState();
@@ -34,6 +34,14 @@ class _CreateChallengeDialogState extends State<CreateChallengeDialog> {
   }
 
   Future<void> _submit() async {
+    if (widget.currentUserId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User not authenticated')),
+      );
+      return;
+    }
+
     final title = _titleController.text.trim();
     final description = _descriptionController.text.trim();
     final duration = int.tryParse(_durationController.text.trim());
@@ -57,7 +65,7 @@ class _CreateChallengeDialogState extends State<CreateChallengeDialog> {
         title: title,
         description: description,
         duration: duration,
-        createdBy: widget.currentUserId,
+        createdBy: widget.currentUserId!,
       );
       await service.createChallenge(challenge);
 

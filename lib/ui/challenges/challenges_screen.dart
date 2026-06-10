@@ -19,7 +19,7 @@ class ChallengesPage extends StatefulWidget {
 }
 
 class _ChallengePageState extends State<ChallengesPage> {
-  late String _currentUserId;
+  String? _currentUserId;
   bool _isLoading = true;
   String? _error;
 
@@ -91,9 +91,10 @@ class _ChallengePageState extends State<ChallengesPage> {
         },
       );
 
-      _userChallengesSubscription = _userChallengeService
-          .watchUserChallenges(_currentUserId)
-          .listen(
+      if (_currentUserId != null) {
+        _userChallengesSubscription = _userChallengeService
+            .watchUserChallenges(_currentUserId!)
+            .listen(
             (userChallenges) {
               if (!mounted) return;
               setState(() {
@@ -109,6 +110,7 @@ class _ChallengePageState extends State<ChallengesPage> {
               });
             },
           );
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -144,6 +146,13 @@ class _ChallengePageState extends State<ChallengesPage> {
             ],
           ),
         ),
+      );
+    }
+
+    if (_isLoading && _currentUserId == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Challenges')),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -185,8 +194,9 @@ class _ChallengePageState extends State<ChallengesPage> {
   }
 
   Future<void> _handleJoinChallenge(String challengeId) async {
+    if (_currentUserId == null) return;
     try {
-      await _userChallengeService.joinChallenge(_currentUserId, challengeId);
+      await _userChallengeService.joinChallenge(_currentUserId!, challengeId);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
