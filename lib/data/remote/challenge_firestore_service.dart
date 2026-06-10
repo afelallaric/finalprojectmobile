@@ -28,12 +28,14 @@ class ChallengeFirestoreService {
         description: 'Avoid using single-use plastics for one week.',
         duration: 7,
         createdBy: 'app',
+        points: 70,
       ),
       Challenge(
         title: 'Carbon Footprint Reduction',
         description: 'Reduce your carbon footprint by 20% this month.',
         duration: 30,
         createdBy: 'app',
+        points: 300,
       ),
       Challenge(
         title: 'No Plastic for 3 Days',
@@ -41,18 +43,21 @@ class ChallengeFirestoreService {
             'Challenge yourself to go plastic-free for 3 consecutive days.',
         duration: 3,
         createdBy: 'app',
+        points: 30,
       ),
       Challenge(
         title: 'Plant a Tree',
         description: 'Plant at least one tree in your community.',
         duration: 14,
         createdBy: 'app',
+        points: 50,
       ),
       Challenge(
         title: 'Energy Conservation Week',
         description: 'Reduce your energy consumption by 30% for one week.',
         duration: 7,
         createdBy: 'app',
+        points: 70,
       ),
     ];
 

@@ -61,11 +61,13 @@ class _CreateChallengeDialogState extends State<CreateChallengeDialog> {
 
     try {
       final service = ChallengeFirestoreService();
+      final points = duration * 10; // Auto-calculate: 10 pts per day
       final challenge = Challenge(
         title: title,
         description: description,
         duration: duration,
         createdBy: widget.currentUserId!,
+        points: points,
       );
       await service.createChallenge(challenge);
 

@@ -5,6 +5,7 @@ import 'package:act_for_earth/domain/model/user_challenge.dart';
 import 'package:act_for_earth/domain/repository/auth_repository.dart';
 import 'package:act_for_earth/data/remote/challenge_firestore_service.dart';
 import 'package:act_for_earth/data/remote/user_challenge_firestore_service.dart';
+import 'package:act_for_earth/data/remote/reward_firestore_service.dart';
 import 'package:act_for_earth/ui/challenges/available_challenges_screen.dart';
 import 'package:act_for_earth/ui/challenges/my_challenges_screen.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +37,9 @@ class _ChallengePageState extends State<ChallengesPage> {
   void initState() {
     super.initState();
     _challengeService = ChallengeFirestoreService();
-    _userChallengeService = UserChallengeFirestoreService();
+    _userChallengeService = UserChallengeFirestoreService(
+      rewardService: RewardFirestoreService(),
+    );
     _initializeAuthAndChallenges();
   }
 
@@ -229,16 +232,54 @@ class _ChallengePageState extends State<ChallengesPage> {
 
   Future<void> _handleCompleteChallenge(String userChallengeId) async {
     try {
-      await _userChallengeService.completeChallenge(userChallengeId);
+      // Find the user challenge to get challengeId
+      final userChallenge = _myChallenges.firstWhere(
+        (uc) => uc.userChallengeId == userChallengeId,
+        orElse: () => const UserChallenge(
+          userChallengeId: '',
+          userId: '',
+          challengeId: '',
+        ),
+      );
+
+      if (userChallenge.userChallengeId.isEmpty) {
+        throw Exception('Challenge not found');
+      }
+
+      // Find the challenge to get points
+      final challenge = _allChallenges.firstWhere(
+        (c) => c.challengeId == userChallenge.challengeId,
+        orElse: () => Challenge(
+          title: '',
+          description: '',
+          duration: 0,
+          createdBy: '',
+        ),
+      );
+
+      final points = challenge.points ?? 0;
+
+      await _userChallengeService.completeChallenge(
+        userChallengeId,
+        userId: _currentUserId,
+        challengeId: userChallenge.challengeId,
+        points: points,
+      );
+
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Challenge completed!')));
+
+      final message = points > 0
+          ? 'Challenge completed! +$points points earned 🎉'
+          : 'Challenge completed!';
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: ${error.toString()}')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${error.toString()}')),
+      );
     }
   }
 
