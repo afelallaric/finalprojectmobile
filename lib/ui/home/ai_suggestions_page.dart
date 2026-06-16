@@ -148,21 +148,11 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
         final habits = habitSnapshot.data ?? [];
 
         return Scaffold(
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  colorScheme.primary.withValues(alpha: 0.1),
-                  colorScheme.surface,
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
+          backgroundColor: colorScheme.surface,
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -295,8 +285,7 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
                         },
                       ),
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
           ),

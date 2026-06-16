@@ -23,25 +23,16 @@ class RewardPage extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SafeArea(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              colorScheme.primary.withValues(alpha: 0.9),
-              colorScheme.surface,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      child: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            backgroundColor: colorScheme.surface,
+            foregroundColor: colorScheme.onSurface,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            title: const Text('Eco Rewards'),
           ),
-        ),
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              pinned: true,
-              backgroundColor: colorScheme.primary,
-              foregroundColor: colorScheme.onPrimary,
-              title: const Text('Eco Rewards'),
-            ),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -147,8 +138,7 @@ class RewardPage extends StatelessWidget {
                 ]),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
