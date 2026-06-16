@@ -2,6 +2,7 @@ import 'package:act_for_earth/data/remote/firebase_auth_service.dart';
 import 'package:act_for_earth/data/remote/user_firestore_service.dart';
 import 'package:act_for_earth/domain/model/user_model.dart';
 import 'package:act_for_earth/domain/repository/auth_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final FirebaseAuthService _firebaseAuthService;
@@ -115,5 +116,43 @@ class AuthRepositoryImpl implements AuthRepository {
         return null;
       }
     });
+  }
+
+  @override
+  Future<void> changePassword(String newPassword) async {
+    try {
+      final user = _firebaseAuthService.getCurrentUser();
+      if (user != null) {
+        await user.updatePassword(newPassword);
+      } else {
+        throw Exception('No user is currently signed in.');
+      }
+    } catch (e) {
+      throw Exception('Failed to change password: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteAccount(String userId) async {
+    try {
+      // 1. Delete user from Firestore collections
+      await _userFirestoreService.deleteUserProfile(userId);
+      
+      // Delete rewards collection entry for the user
+      await FirebaseFirestore.instance.collection('rewards').doc(userId).delete();
+      
+      // Delete leaderboard collection entry for the user
+      await FirebaseFirestore.instance.collection('leaderboard_entries').doc(userId).delete();
+
+      // 2. Delete user from Firebase Auth
+      final user = _firebaseAuthService.getCurrentUser();
+      if (user != null) {
+        await user.delete();
+      } else {
+        throw Exception('No user is currently signed in.');
+      }
+    } catch (e) {
+      throw Exception('Failed to delete account: $e');
+    }
   }
 }

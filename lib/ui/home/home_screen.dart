@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:act_for_earth/data/remote/leaderboard_firestore_service.dart';
 import 'package:act_for_earth/domain/model/leaderboard_entry.dart';
-import 'package:act_for_earth/domain/model/reward_item.dart';
 import 'package:act_for_earth/domain/model/user_model.dart';
 import 'package:act_for_earth/domain/repository/auth_repository.dart';
 import 'package:act_for_earth/domain/repository/habit_repository.dart';
@@ -10,11 +9,10 @@ import 'package:act_for_earth/ui/challenges/challenges_screen.dart';
 import 'package:act_for_earth/ui/habit_list/habit_list_screen.dart';
 import 'package:act_for_earth/ui/habit_list/habit_list_viewmodel.dart';
 import 'package:act_for_earth/ui/leaderboard/leaderboard_screen.dart';
-import 'package:act_for_earth/ui/leaderboard/widgets/leaderboard_entry_dialog.dart';
 import 'package:act_for_earth/data/remote/reward_firestore_service.dart';
 import 'package:act_for_earth/domain/model/user_reward.dart';
 import 'package:act_for_earth/ui/home/ai_suggestions_page.dart';
-import 'package:act_for_earth/ui/rewards/reward_screen.dart';
+import 'package:act_for_earth/ui/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeShellPage extends StatefulWidget {
@@ -37,34 +35,12 @@ class HomeShellPage extends StatefulWidget {
 
 class _HomeShellPageState extends State<HomeShellPage> {
   int _currentIndex = 0;
-  int _totalPoints = 120;
   bool _isLeaderboardLoading = true;
   String? _leaderboardError;
 
   late final LeaderboardFirestoreService _leaderboardService;
   late final HabitListViewModel _habitListViewModel;
   StreamSubscription<List<LeaderboardEntry>>? _leaderboardSubscription;
-
-  final List<RewardItem> _rewards = const [
-    RewardItem(
-      title: 'Reusable Bottle',
-      description: 'Stay hydrated and reduce single-use plastic.',
-      points: 50,
-      icon: Icons.water_drop,
-    ),
-    RewardItem(
-      title: 'Seed Kit',
-      description: 'Start a small indoor garden at home.',
-      points: 80,
-      icon: Icons.spa,
-    ),
-    RewardItem(
-      title: 'Eco Badge',
-      description: 'Unlock a special badge for your profile.',
-      points: 30,
-      icon: Icons.emoji_events,
-    ),
-  ];
 
   List<LeaderboardEntry> _leaderboard = const [];
 
@@ -89,36 +65,23 @@ class _HomeShellPageState extends State<HomeShellPage> {
 
   Future<void> _initializeLeaderboard() async {
     try {
-      await _leaderboardService.seedDefaults(const [
-        LeaderboardEntry(
-          id: LeaderboardFirestoreService.currentUserDocId,
-          name: 'You',
-          points: 120,
-        ),
-        LeaderboardEntry(name: 'Alya', points: 150),
-        LeaderboardEntry(name: 'Raka', points: 95),
+      // Seed placeholder competitors only if the collection is empty.
+      await _leaderboardService.seedDefaults([
+        const LeaderboardEntry(name: 'Alya', points: 150),
+        const LeaderboardEntry(name: 'Raka', points: 95),
       ]);
 
       _leaderboardSubscription = _leaderboardService.watchEntries().listen(
         (entries) {
-          if (!mounted) {
-            return;
-          }
-
-          final currentUser = _findCurrentUser(entries);
-
+          if (!mounted) return;
           setState(() {
             _leaderboard = entries;
-            _totalPoints = currentUser?.points ?? _totalPoints;
             _isLeaderboardLoading = false;
             _leaderboardError = null;
           });
         },
         onError: (Object error) {
-          if (!mounted) {
-            return;
-          }
-
+          if (!mounted) return;
           setState(() {
             _isLeaderboardLoading = false;
             _leaderboardError = error.toString();
@@ -126,10 +89,7 @@ class _HomeShellPageState extends State<HomeShellPage> {
         },
       );
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
-
+      if (!mounted) return;
       setState(() {
         _isLeaderboardLoading = false;
         _leaderboardError = error.toString();
@@ -137,84 +97,10 @@ class _HomeShellPageState extends State<HomeShellPage> {
     }
   }
 
-  LeaderboardEntry? _findCurrentUser(List<LeaderboardEntry> entries) {
-    for (final entry in entries) {
-      if (entry.id == LeaderboardFirestoreService.currentUserDocId) {
-        return entry;
-      }
-    }
-
-    return null;
-  }
-
-  LeaderboardEntry? get _currentUser => _findCurrentUser(_leaderboard);
-
   void _selectPage(int index) {
     setState(() {
       _currentIndex = index;
     });
-  }
-
-  Future<void> _addPoints(int amount) async {
-    final currentUser = _currentUser;
-    if (currentUser == null) {
-      return;
-    }
-
-    final updatedPoints = currentUser.points + amount;
-    await _leaderboardService.setCurrentUserPoints(updatedPoints);
-  }
-
-  Future<void> _subtractPoints(int amount) async {
-    final currentUser = _currentUser;
-    if (currentUser == null) {
-      return;
-    }
-
-    final updatedPoints = (currentUser.points - amount).clamp(0, 999999);
-    await _leaderboardService.setCurrentUserPoints(updatedPoints);
-  }
-
-  Future<void> _createEntry() async {
-    final result = await showDialog<LeaderboardFormResult>(
-      context: context,
-      builder: (context) => const LeaderboardEntryDialog(),
-    );
-
-    if (result == null) {
-      return;
-    }
-
-    await _leaderboardService.createEntry(
-      name: result.name,
-      points: result.points,
-    );
-  }
-
-  Future<void> _editEntry(LeaderboardEntry entry) async {
-    final result = await showDialog<LeaderboardFormResult>(
-      context: context,
-      builder: (context) => LeaderboardEntryDialog(
-        initialName: entry.name,
-        initialPoints: entry.points,
-      ),
-    );
-
-    if (result == null) {
-      return;
-    }
-
-    await _leaderboardService.updateEntry(
-      entry.copyWith(name: result.name, points: result.points),
-    );
-  }
-
-  Future<void> _deleteEntry(LeaderboardEntry entry) async {
-    if (entry.id == LeaderboardFirestoreService.currentUserDocId) {
-      return;
-    }
-
-    await _leaderboardService.deleteEntry(entry.id);
   }
 
   Future<void> _handleLogout() async {
@@ -228,6 +114,18 @@ class _HomeShellPageState extends State<HomeShellPage> {
   @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
+      AISuggestionsPage(
+        userId: widget.currentUser.id,
+        habitRepository: widget.habitRepository,
+      ),
+      ChallengesPage(authRepository: widget.authRepository),
+      HabitListScreen(viewModel: _habitListViewModel),
+      LeaderboardPage(
+        entries: _leaderboard,
+        isLoading: _isLeaderboardLoading,
+        errorMessage: _leaderboardError,
+        currentUserId: widget.currentUser.id,
+      ),
       StreamBuilder<UserReward?>(
         stream: RewardFirestoreService().watchUserReward(widget.currentUser.id),
         builder: (context, snapshot) {
@@ -235,33 +133,23 @@ class _HomeShellPageState extends State<HomeShellPage> {
           final totalPoints = userReward?.points ?? 0;
           final badges = userReward?.badges ?? [];
 
-          return RewardPage(
+          // Keep the leaderboard entry in sync with rewards points.
+          if (snapshot.hasData) {
+            _leaderboardService.upsertUserEntry(
+              userId: widget.currentUser.id,
+              displayName: widget.currentUser.displayName,
+              points: totalPoints,
+            );
+          }
+
+          return ProfilePage(
+            currentUser: widget.currentUser,
+            authRepository: widget.authRepository,
             totalPoints: totalPoints,
-            rewards: _rewards,
-            onEarnPoints: () {
-              RewardFirestoreService().addPoints(widget.currentUser.id, 10);
-            },
-            onSpendPoints: () {
-              RewardFirestoreService().subtractPoints(widget.currentUser.id, 10);
-            },
             badges: badges,
+            onLogout: _handleLogout,
           );
         },
-      ),
-      LeaderboardPage(
-        entries: List<LeaderboardEntry>.from(_leaderboard)
-          ..sort((a, b) => b.points.compareTo(a.points)),
-        isLoading: _isLeaderboardLoading,
-        errorMessage: _leaderboardError,
-        onAdd: _createEntry,
-        onEdit: _editEntry,
-        onDelete: _deleteEntry,
-      ),
-      ChallengesPage(authRepository: widget.authRepository),
-      HabitListScreen(viewModel: _habitListViewModel),
-      AISuggestionsPage(
-        userId: widget.currentUser.id,
-        habitRepository: widget.habitRepository,
       ),
     ];
 
@@ -327,14 +215,9 @@ class EcoNavigationBar extends StatelessWidget {
       onDestinationSelected: onTap,
       destinations: const [
         NavigationDestination(
-          icon: Icon(Icons.card_giftcard_outlined),
-          selectedIcon: Icon(Icons.card_giftcard),
-          label: 'Rewards',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.leaderboard_outlined),
-          selectedIcon: Icon(Icons.leaderboard),
-          label: 'Leaderboard',
+          icon: Icon(Icons.psychology_outlined),
+          selectedIcon: Icon(Icons.psychology),
+          label: 'AI Suggest',
         ),
         NavigationDestination(
           icon: Icon(Icons.eco_outlined),
@@ -347,11 +230,17 @@ class EcoNavigationBar extends StatelessWidget {
           label: 'Habits',
         ),
         NavigationDestination(
-          icon: Icon(Icons.psychology_outlined),
-          selectedIcon: Icon(Icons.psychology),
-          label: 'AI Suggest',
+          icon: Icon(Icons.leaderboard_outlined),
+          selectedIcon: Icon(Icons.leaderboard),
+          label: 'Leaderboard',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.person_outline),
+          selectedIcon: Icon(Icons.person),
+          label: 'Profile',
         ),
       ],
     );
   }
 }
+

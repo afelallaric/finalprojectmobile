@@ -60,4 +60,12 @@ class UserFirestoreService {
           throw Exception('Failed to watch user profile: $error');
         });
   }
+
+  Future<void> deleteUserProfile(String userId) async {
+    try {
+      await _firestore.collection(_usersCollection).doc(userId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete user profile: $e');
+    }
+  }
 }

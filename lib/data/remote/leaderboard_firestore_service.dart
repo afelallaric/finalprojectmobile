@@ -6,7 +6,6 @@ class LeaderboardFirestoreService {
     : _firestore = firestore;
 
   static const String collectionName = 'leaderboard_entries';
-  static const String currentUserDocId = 'current_user';
 
   final FirebaseFirestore? _firestore;
 
@@ -16,14 +15,21 @@ class LeaderboardFirestoreService {
     return _db.collection(collectionName);
   }
 
+  /// Watch all leaderboard entries, sorted descending by points.
   Stream<List<LeaderboardEntry>> watchEntries() {
-    return _collection.snapshots().map(
-      (snapshot) => snapshot.docs
-          .map(LeaderboardEntry.fromFirestore)
-          .toList(growable: false),
-    );
+    return _collection
+        .orderBy('points', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(LeaderboardEntry.fromFirestore)
+              .toList(growable: false),
+        );
   }
 
+  /// Seed the leaderboard with non-user placeholder entries if the collection
+  /// is empty. The current user's entry is always upserted separately via
+  /// [upsertUserEntry].
   Future<void> seedDefaults(List<LeaderboardEntry> defaults) async {
     final snapshot = await _collection.limit(1).get();
     if (snapshot.docs.isNotEmpty) {
@@ -41,30 +47,17 @@ class LeaderboardFirestoreService {
     await batch.commit();
   }
 
-  Future<void> createEntry({required String name, required int points}) async {
-    await _collection.add({'name': name, 'points': points});
-  }
-
-  Future<void> updateEntry(LeaderboardEntry entry) async {
-    if (entry.id.isEmpty) {
-      throw ArgumentError('Entry id cannot be empty for update.');
-    }
-
-    await _collection.doc(entry.id).update(entry.toFirestore());
-  }
-
-  Future<void> setCurrentUserPoints(int points) async {
-    await _collection.doc(currentUserDocId).set({
-      'name': 'You',
+  /// Upsert the logged-in user's leaderboard entry using their UID as doc ID.
+  /// This keeps reward points and the leaderboard in sync.
+  Future<void> upsertUserEntry({
+    required String userId,
+    required String displayName,
+    required int points,
+  }) async {
+    await _collection.doc(userId).set({
+      'name': displayName,
       'points': points,
+      'isCurrentUser': true,
     }, SetOptions(merge: true));
-  }
-
-  Future<void> deleteEntry(String id) async {
-    if (id == currentUserDocId) {
-      return;
-    }
-
-    await _collection.doc(id).delete();
   }
 }

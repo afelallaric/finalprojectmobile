@@ -43,6 +43,12 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<bool> get isAuthenticated async => false;
+
+  @override
+  Future<void> changePassword(String newPassword) async {}
+
+  @override
+  Future<void> deleteAccount(String userId) async {}
 }
 
 class _FakeHabitRepository implements HabitRepository {
