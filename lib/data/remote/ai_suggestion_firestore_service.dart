@@ -38,4 +38,21 @@ class AISuggestionFirestoreService {
   Future<void> deleteSuggestion(String suggestionId) async {
     await _collection.doc(suggestionId).delete();
   }
+
+  Future<bool> hasGeneratedToday(String userId) async {
+    final todayStr = DateTime.now().toLocal().toString().split(' ')[0];
+    final docId = '${userId}_$todayStr';
+    final doc = await _firestore.collection('daily_quest_generations').doc(docId).get();
+    return doc.exists;
+  }
+
+  Future<void> logGeneration(String userId) async {
+    final todayStr = DateTime.now().toLocal().toString().split(' ')[0];
+    final docId = '${userId}_$todayStr';
+    await _firestore.collection('daily_quest_generations').doc(docId).set({
+      'userId': userId,
+      'generatedAt': FieldValue.serverTimestamp(),
+      'date': todayStr,
+    });
+  }
 }

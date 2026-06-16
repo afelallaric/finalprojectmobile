@@ -51,13 +51,17 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       try {
-        final suggestions = await AISuggestionFirestoreService().getSuggestions(user.id);
-        if (suggestions.isEmpty) {
-          await NotificationService.showNotification(
-            id: 1,
-            title: 'Daily Quests',
-            body: "You haven't generated your daily quest yet. Tap to generate now!",
-          );
+        final service = AISuggestionFirestoreService();
+        final alreadyGenerated = await service.hasGeneratedToday(user.id);
+        if (!alreadyGenerated) {
+          final suggestions = await service.getSuggestions(user.id);
+          if (suggestions.isEmpty) {
+            await NotificationService.showNotification(
+              id: 1,
+              title: 'Daily Quests',
+              body: "You haven't generated your daily quest yet. Tap to generate now!",
+            );
+          }
         }
       } catch (_) {
         // Fail silently so auth state completes without blocking

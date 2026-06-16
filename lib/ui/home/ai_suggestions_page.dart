@@ -31,12 +31,23 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
   final _llmService = LLMService();
 
   bool _isGenerating = false;
+  bool _alreadyGeneratedToday = false;
   StreamSubscription<List<AISuggestion>>? _suggestionsSubscription;
 
   @override
   void initState() {
     super.initState();
     _checkAndResetOutdatedSuggestions();
+    _checkIfAlreadyGenerated();
+  }
+
+  Future<void> _checkIfAlreadyGenerated() async {
+    final generated = await _suggestionService.hasGeneratedToday(widget.userId);
+    if (mounted) {
+      setState(() {
+        _alreadyGeneratedToday = generated;
+      });
+    }
   }
 
   @override
@@ -47,6 +58,7 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
 
   void _checkAndResetOutdatedSuggestions() {
     _suggestionsSubscription = _suggestionService.watchSuggestions(widget.userId).listen((suggestions) async {
+      _checkIfAlreadyGenerated();
       if (suggestions.isNotEmpty) {
         final now = DateTime.now();
         final hasOutdated = suggestions.any((s) {
@@ -75,6 +87,19 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please add some habits first before generating daily quests.')),
       );
+      return;
+    }
+
+    final alreadyGenerated = await _suggestionService.hasGeneratedToday(widget.userId);
+    if (alreadyGenerated) {
+      setState(() {
+        _alreadyGeneratedToday = true;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You have already generated daily quests today.')),
+        );
+      }
       return;
     }
 
@@ -111,6 +136,11 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
           ),
         );
       }
+
+      await _suggestionService.logGeneration(widget.userId);
+      setState(() {
+        _alreadyGeneratedToday = true;
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -241,24 +271,30 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
-                                      'No daily quests yet.',
+                                      _alreadyGeneratedToday
+                                          ? 'You have already generated today\'s quests.'
+                                          : 'No daily quests yet.',
                                       style: Theme.of(context).textTheme.titleMedium,
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
-                                      'Tap Generate Daily Quest to get custom eco-friendly quests!',
+                                      _alreadyGeneratedToday
+                                          ? 'You can only generate daily quests once a day. Come back tomorrow!'
+                                          : 'Tap Generate Daily Quest to get custom eco-friendly quests!',
                                       style: Theme.of(context).textTheme.bodySmall,
                                       textAlign: TextAlign.center,
                                     ),
                                     const SizedBox(height: 24),
-                                    if (!_isGenerating)
-                                      ElevatedButton.icon(
-                                        onPressed: () => _requestSuggestions(habits),
-                                        icon: const Icon(Icons.auto_awesome),
-                                        label: const Text('Generate Daily Quest'),
-                                      )
-                                    else
-                                      const CircularProgressIndicator(),
+                                    if (!_alreadyGeneratedToday) ...[
+                                      if (!_isGenerating)
+                                        ElevatedButton.icon(
+                                          onPressed: () => _requestSuggestions(habits),
+                                          icon: const Icon(Icons.auto_awesome),
+                                          label: const Text('Generate Daily Quest'),
+                                        )
+                                      else
+                                        const CircularProgressIndicator(),
+                                    ],
                                   ],
                                 ),
                               ),
