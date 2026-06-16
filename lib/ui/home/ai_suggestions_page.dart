@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:act_for_earth/data/remote/ai_suggestion_firestore_service.dart';
 import 'package:act_for_earth/data/remote/habit_log_firestore_service.dart';
 import 'package:act_for_earth/data/remote/llm_service.dart';
 import 'package:act_for_earth/data/remote/reward_firestore_service.dart';
+import 'package:act_for_earth/data/remote/notification_service.dart';
 import 'package:act_for_earth/domain/model/ai_suggestion.dart';
 import 'package:act_for_earth/domain/model/habit_log.dart';
 import 'package:act_for_earth/domain/model/habit.dart';
@@ -29,6 +31,44 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
   final _llmService = LLMService();
 
   bool _isGenerating = false;
+  StreamSubscription<List<AISuggestion>>? _suggestionsSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAndResetOutdatedSuggestions();
+  }
+
+  @override
+  void dispose() {
+    _suggestionsSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _checkAndResetOutdatedSuggestions() {
+    _suggestionsSubscription = _suggestionService.watchSuggestions(widget.userId).listen((suggestions) async {
+      if (suggestions.isNotEmpty) {
+        final now = DateTime.now();
+        final hasOutdated = suggestions.any((s) {
+          final localCreated = s.createdAt.toLocal();
+          return localCreated.year != now.year ||
+                 localCreated.month != now.month ||
+                 localCreated.day != now.day;
+        });
+
+        if (hasOutdated) {
+          for (final suggestion in suggestions) {
+            await _suggestionService.deleteSuggestion(suggestion.suggestionId);
+          }
+          await NotificationService.showNotification(
+            id: 2,
+            title: 'Daily Quests Reset',
+            body: 'Tantangan harian telah direset untuk hari yang baru! Ketuk untuk membuat yang baru.',
+          );
+        }
+      }
+    });
+  }
 
   Future<void> _requestSuggestions(List<Habit> habits) async {
     if (habits.isEmpty) {
@@ -227,7 +267,7 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
 
                           return ListView.separated(
                             itemCount: suggestions.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 12),
+                            separatorBuilder: (context, index) => const SizedBox(height: 12),
                             itemBuilder: (context, index) {
                               final suggestion = suggestions[index];
                               final isCompleted = suggestion.status == 'completed';
@@ -235,7 +275,7 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
                               return Card(
                                 elevation: isCompleted ? 1 : 3,
                                 color: isCompleted
-                                    ? colorScheme.surfaceVariant.withValues(alpha: 0.5)
+                                    ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
                                     : colorScheme.surface,
                                 child: Padding(
                                   padding: const EdgeInsets.all(16),

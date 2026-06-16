@@ -155,11 +155,21 @@ class _HomeShellPageState extends State<HomeShellPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Act For Earth - ${widget.currentUser.displayName}'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onPrimary),
+        actionsIconTheme: IconThemeData(color: Theme.of(context).colorScheme.onPrimary),
+        title: Text(
+          'Act For Earth - ${widget.currentUser.displayName}',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           if (widget.onLogout != null)
             IconButton(
               icon: const Icon(Icons.logout),
+              color: Theme.of(context).colorScheme.onPrimary,
               tooltip: 'Logout',
               onPressed: () {
                 showDialog(
@@ -210,36 +220,53 @@ class EcoNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NavigationBar(
-      selectedIndex: currentIndex,
-      onDestinationSelected: onTap,
-      destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.assignment_outlined),
-          selectedIcon: Icon(Icons.assignment),
-          label: 'Daily Quest',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.eco_outlined),
-          selectedIcon: Icon(Icons.eco),
-          label: 'Challenges',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.event_repeat_outlined),
-          selectedIcon: Icon(Icons.event_repeat),
-          label: 'Habits',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.leaderboard_outlined),
-          selectedIcon: Icon(Icons.leaderboard),
-          label: 'Leaderboard',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.person_outline),
-          selectedIcon: Icon(Icons.person),
-          label: 'Profile',
-        ),
-      ],
+    return NavigationBarTheme(
+      data: NavigationBarThemeData(
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            );
+          }
+          return TextStyle(
+            fontSize: 11,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          );
+        }),
+      ),
+      child: NavigationBar(
+        selectedIndex: currentIndex,
+        onDestinationSelected: onTap,
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.assignment_outlined),
+            selectedIcon: Icon(Icons.assignment),
+            label: 'Daily Quest',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.eco_outlined),
+            selectedIcon: Icon(Icons.eco),
+            label: 'Challenges',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.event_repeat_outlined),
+            selectedIcon: Icon(Icons.event_repeat),
+            label: 'Habits',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.leaderboard_outlined),
+            selectedIcon: Icon(Icons.leaderboard),
+            label: 'Leaderboard',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
     );
   }
 }
