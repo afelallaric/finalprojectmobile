@@ -45,13 +45,35 @@ class ChallengeCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Chip(
-                  label: Text('${challenge.duration}d'),
-                  avatar: Icon(
-                    Icons.schedule,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.onSecondaryContainer,
-                  ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    if (challenge.points != null && challenge.points! > 0)
+                      Chip(
+                        label: Text('${challenge.points}pts'),
+                        avatar: Icon(
+                          Icons.local_fire_department,
+                          size: 16,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onTertiaryContainer,
+                        ),
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .tertiaryContainer,
+                      ),
+                    Chip(
+                      label: Text('${challenge.duration}d'),
+                      avatar: Icon(
+                        Icons.schedule,
+                        size: 16,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSecondaryContainer,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

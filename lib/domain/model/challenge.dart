@@ -7,6 +7,7 @@ class Challenge {
     required this.description,
     required this.duration,
     required this.createdBy,
+    this.points,
   });
 
   final String challengeId;
@@ -14,6 +15,7 @@ class Challenge {
   final String description;
   final int duration;
   final String createdBy;
+  final int? points;
 
   factory Challenge.fromFirestore(
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
@@ -25,6 +27,7 @@ class Challenge {
       description: data['description'] as String? ?? '',
       duration: (data['duration'] as int?) ?? 0,
       createdBy: (data['createdBy'] as String?) ?? 'Unknown',
+      points: data['points'] as int?,
     );
   }
 
@@ -34,6 +37,7 @@ class Challenge {
       'description': description,
       'duration': duration,
       'createdBy': createdBy,
+      if (points != null) 'points': points,
     };
   }
 
@@ -43,6 +47,7 @@ class Challenge {
     String? description,
     int? duration,
     String? createdBy,
+    int? points,
   }) {
     return Challenge(
       challengeId: challengeId ?? this.challengeId,
@@ -50,6 +55,7 @@ class Challenge {
       description: description ?? this.description,
       duration: duration ?? this.duration,
       createdBy: createdBy ?? this.createdBy,
+      points: points ?? this.points,
     );
   }
 }

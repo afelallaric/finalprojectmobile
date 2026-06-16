@@ -7,6 +7,7 @@ class UserChallenge {
     required this.challengeId,
     this.progress = 0,
     this.status = 'joined',
+    this.pointsAwarded = false,
   });
 
   final String userChallengeId;
@@ -14,6 +15,7 @@ class UserChallenge {
   final String challengeId;
   final int progress;
   final String status;
+  final bool pointsAwarded;
 
   factory UserChallenge.fromFirestore(
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
@@ -25,6 +27,7 @@ class UserChallenge {
       challengeId: (data['challengeId'] as String?) ?? 'Unknown Challenge',
       progress: (data['progress'] as int?) ?? 0,
       status: (data['status'] as String?) ?? 'joined',
+      pointsAwarded: (data['pointsAwarded'] as bool?) ?? false,
     );
   }
 
@@ -34,6 +37,7 @@ class UserChallenge {
       'challengeId': challengeId,
       'progress': progress,
       'status': status,
+      'pointsAwarded': pointsAwarded,
     };
   }
 
@@ -43,6 +47,7 @@ class UserChallenge {
     String? challengeId,
     int? progress,
     String? status,
+    bool? pointsAwarded,
   }) {
     return UserChallenge(
       userChallengeId: userChallengeId ?? this.userChallengeId,
@@ -50,6 +55,7 @@ class UserChallenge {
       challengeId: challengeId ?? this.challengeId,
       progress: progress ?? this.progress,
       status: status ?? this.status,
+      pointsAwarded: pointsAwarded ?? this.pointsAwarded,
     );
   }
 }
