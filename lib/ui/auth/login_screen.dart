@@ -1,3 +1,5 @@
+import 'package:act_for_earth/data/remote/ai_suggestion_firestore_service.dart';
+import 'package:act_for_earth/data/remote/notification_service.dart';
 import 'package:act_for_earth/domain/repository/auth_repository.dart';
 import 'package:act_for_earth/ui/auth/auth_form_field.dart';
 import 'package:flutter/material.dart';
@@ -43,10 +45,23 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await widget.authRepository.login(
+      final user = await widget.authRepository.login(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+
+      try {
+        final suggestions = await AISuggestionFirestoreService().getSuggestions(user.id);
+        if (suggestions.isEmpty) {
+          await NotificationService.showNotification(
+            id: 1,
+            title: 'Daily Quests',
+            body: "You haven't generated your daily quest yet. Tap to generate now!",
+          );
+        }
+      } catch (_) {
+        // Fail silently so auth state completes without blocking
+      }
 
       if (mounted) {
         widget.onLoginSuccess();

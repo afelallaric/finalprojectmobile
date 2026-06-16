@@ -3,6 +3,7 @@ import 'package:act_for_earth/data/remote/habit_log_firestore_service.dart';
 import 'package:act_for_earth/data/remote/llm_service.dart';
 import 'package:act_for_earth/data/remote/reward_firestore_service.dart';
 import 'package:act_for_earth/domain/model/ai_suggestion.dart';
+import 'package:act_for_earth/domain/model/habit_log.dart';
 import 'package:act_for_earth/domain/model/habit.dart';
 import 'package:act_for_earth/domain/repository/habit_repository.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +44,7 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
 
     try {
       // Fetch some logs to summarize activity
-      final logs = await _logService.watchAllLogs().first.catchError((_) => []);
+      final logs = await _logService.watchAllLogs().first.catchError((_) => <HabitLog>[]);
       final logsSummary = logs.map((log) {
         final habit = habits.firstWhere(
           (h) => h.habitId == log.habitId,
@@ -79,7 +80,7 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to generate daily quests: $e')),
+          const SnackBar(content: Text('Please try again a few minutes later')),
         );
       }
     } finally {

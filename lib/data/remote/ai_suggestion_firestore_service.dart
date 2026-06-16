@@ -20,6 +20,13 @@ class AISuggestionFirestoreService {
     });
   }
 
+  Future<List<AISuggestion>> getSuggestions(String userId) async {
+    final snapshot = await _collection.where('userId', isEqualTo: userId).get();
+    return snapshot.docs
+        .map(AISuggestion.fromFirestore)
+        .toList(growable: false);
+  }
+
   Future<void> createSuggestion(AISuggestion suggestion) async {
     await _collection.add(suggestion.toFirestore());
   }
