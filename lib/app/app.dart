@@ -20,7 +20,7 @@ class ActForEarthApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'ActForEarth',
+      title: 'Act For Earth',
       theme: AppTheme.light(),
       home: StreamBuilder<UserModel?>(
         stream: _authStateStream(),
