@@ -18,4 +18,6 @@ samples, guidance on mobile development, and a full API reference.
 
 To run this project use this flutter run :
 - flutter run --dart-define=GEMINI_API_KEY='Your Gemini API Key'
-so you can use the daily quest feature (this feature use gemini ai to generate the daily quests)
+
+
+with this you can use the daily quest feature (this feature use gemini ai to generate the daily quests)
