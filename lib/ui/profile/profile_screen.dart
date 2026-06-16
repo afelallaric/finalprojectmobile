@@ -23,11 +23,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  bool _obscurePassword = true;
   bool _isActionLoading = false;
-  
-  // A dummy/placeholder password since Firebase doesn't expose it
-  final String _dummyPassword = "••••••••";
 
   Future<void> _handleChangePassword() async {
     final passwordController = TextEditingController();
@@ -275,28 +271,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                 leading: const Icon(Icons.email_outlined),
                                 title: const Text('Email Address'),
                                 subtitle: Text(widget.currentUser.email),
-                              ),
-
-                              // Password Field
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: const Icon(Icons.lock_outlined),
-                                title: const Text('Password'),
-                                subtitle: Text(
-                                  _obscurePassword ? _dummyPassword : 'PasswordHiddenInfo',
-                                ),
-                                trailing: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
                               ),
                             ],
                           ),

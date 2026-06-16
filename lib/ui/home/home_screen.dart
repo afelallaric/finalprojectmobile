@@ -215,9 +215,9 @@ class EcoNavigationBar extends StatelessWidget {
       onDestinationSelected: onTap,
       destinations: const [
         NavigationDestination(
-          icon: Icon(Icons.psychology_outlined),
-          selectedIcon: Icon(Icons.psychology),
-          label: 'AI Suggest',
+          icon: Icon(Icons.assignment_outlined),
+          selectedIcon: Icon(Icons.assignment),
+          label: 'Daily Quest',
         ),
         NavigationDestination(
           icon: Icon(Icons.eco_outlined),

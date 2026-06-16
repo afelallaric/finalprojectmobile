@@ -32,7 +32,7 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
   Future<void> _requestSuggestions(List<Habit> habits) async {
     if (habits.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add some habits first before requesting suggestions.')),
+        const SnackBar(content: Text('Please add some habits first before generating daily quests.')),
       );
       return;
     }
@@ -73,13 +73,13 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('AI Suggestions generated successfully!')),
+          const SnackBar(content: Text('Daily quests generated successfully!')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to generate suggestions: $e')),
+          SnackBar(content: Text('Failed to generate daily quests: $e')),
         );
       }
     } finally {
@@ -109,7 +109,7 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Suggestion completed! Earned 15 points! 🎉')),
+          const SnackBar(content: Text('Quest completed! Earned 15 eco points! 🎉')),
         );
       }
     } catch (e) {
@@ -126,7 +126,7 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
       await _suggestionService.deleteSuggestion(suggestion.suggestionId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Suggestion deleted.')),
+          const SnackBar(content: Text('Quest deleted.')),
         );
       }
     } catch (e) {
@@ -162,27 +162,19 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'AI Eco-Suggestions',
+                                'Daily Quests',
                                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                       fontWeight: FontWeight.bold,
                                     ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Personalized tips based on your logged habits.',
+                                'Complete daily quests to earn eco-points. (each daily quests will give you 15 eco points)',
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        _isGenerating
-                            ? const CircularProgressIndicator()
-                            : FloatingActionButton.extended(
-                                onPressed: () => _requestSuggestions(habits),
-                                icon: const Icon(Icons.psychology),
-                                label: const Text('Generate'),
-                              ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -197,26 +189,37 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
                           final suggestions = snapshot.data ?? [];
                           if (suggestions.isEmpty) {
                             return Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.tips_and_updates_outlined,
-                                    size: 64,
-                                    color: colorScheme.secondary.withValues(alpha: 0.5),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No suggestions yet.',
-                                    style: Theme.of(context).textTheme.titleMedium,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Tap Generate to get custom eco-friendly suggestions!',
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.assignment_turned_in_outlined,
+                                      size: 64,
+                                      color: colorScheme.secondary.withValues(alpha: 0.5),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No daily quests yet.',
+                                      style: Theme.of(context).textTheme.titleMedium,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Tap Generate Daily Quest to get custom eco-friendly quests!',
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 24),
+                                    if (!_isGenerating)
+                                      ElevatedButton.icon(
+                                        onPressed: () => _requestSuggestions(habits),
+                                        icon: const Icon(Icons.auto_awesome),
+                                        label: const Text('Generate Daily Quest'),
+                                      )
+                                    else
+                                      const CircularProgressIndicator(),
+                                  ],
+                                ),
                               ),
                             );
                           }
@@ -242,7 +245,7 @@ class _AISuggestionsPageState extends State<AISuggestionsPage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Icon(
-                                            isCompleted ? Icons.check_circle : Icons.lightbulb,
+                                            isCompleted ? Icons.check_circle : Icons.assignment_outlined,
                                             color: isCompleted ? Colors.green : Colors.amber,
                                           ),
                                           const SizedBox(width: 12),
