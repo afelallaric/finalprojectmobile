@@ -59,4 +59,37 @@ class NotificationService {
       notificationDetails: notificationDetails,
     );
   }
+
+  static Future<void> scheduleDailyHabitReminder({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    const AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+      'habit_reminder_channel',
+      'Habit Reminders',
+      channelDescription: 'Notification channel for daily habit reminders',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidNotificationDetails,
+      iOS: DarwinNotificationDetails(),
+    );
+
+    await _notificationsPlugin.periodicallyShow(
+      id: id,
+      title: title,
+      body: body,
+      repeatInterval: RepeatInterval.daily,
+      notificationDetails: notificationDetails,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+
+  static Future<void> cancelNotification(int id) async {
+    await _notificationsPlugin.cancel(id: id);
+  }
 }
