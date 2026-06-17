@@ -243,13 +243,30 @@ class _HabitListScreenState extends State<HabitListScreen> {
     // Get the current week Monday - Sunday
     final now = DateTime.now();
     final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-    final monday = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
+    final monday = DateTime(
+      startOfWeek.year,
+      startOfWeek.month,
+      startOfWeek.day,
+    );
     final sunday = monday.add(const Duration(days: 6));
-    final weekDays = List.generate(7, (index) => monday.add(Duration(days: index)));
+    final weekDays = List.generate(
+      7,
+      (index) => monday.add(Duration(days: index)),
+    );
 
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     final dateRangeStr =
         '${months[monday.month - 1]} ${monday.day} - ${months[sunday.month - 1]} ${sunday.day}, ${monday.year}';
@@ -265,10 +282,9 @@ class _HabitListScreenState extends State<HabitListScreen> {
       }
 
       // Status filter
-      final isDoneToday = habit.completionDates.any((d) =>
-          d.year == now.year &&
-          d.month == now.month &&
-          d.day == now.day);
+      final isDoneToday = habit.completionDates.any(
+        (d) => d.year == now.year && d.month == now.month && d.day == now.day,
+      );
 
       if (_selectedStatus == 'Unfinished' && isDoneToday) {
         return false;
@@ -292,16 +308,11 @@ class _HabitListScreenState extends State<HabitListScreen> {
           decoration: BoxDecoration(
             color: colorScheme.primaryContainer.withOpacity(0.3),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: colorScheme.primary.withOpacity(0.2),
-            ),
+            border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.calendar_month,
-                color: colorScheme.primary,
-              ),
+              Icon(Icons.calendar_month, color: colorScheme.primary),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,20 +374,31 @@ class _HabitListScreenState extends State<HabitListScreen> {
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withOpacity(0.5),
+                  ),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _selectedCategory,
-                    icon: Icon(Icons.arrow_drop_down, color: colorScheme.primary, size: 18),
+                    icon: Icon(
+                      Icons.arrow_drop_down,
+                      color: colorScheme.primary,
+                      size: 18,
+                    ),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurface,
                     ),
                     items: [
-                      const DropdownMenuItem(value: 'All', child: Text('All Categories')),
-                      ...categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))),
+                      const DropdownMenuItem(
+                        value: 'All',
+                        child: Text('All Categories'),
+                      ),
+                      ...categories.map(
+                        (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
+                      ),
                     ],
                     onChanged: (val) {
                       if (val != null) {
@@ -401,7 +423,9 @@ class _HabitListScreenState extends State<HabitListScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          _selectedStatus == 'Unfinished' ? Icons.task_alt : Icons.filter_alt_off,
+                          _selectedStatus == 'Unfinished'
+                              ? Icons.task_alt
+                              : Icons.filter_alt_off,
                           size: 48,
                           color: colorScheme.primary.withOpacity(0.5),
                         ),
@@ -414,7 +438,9 @@ class _HabitListScreenState extends State<HabitListScreen> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurfaceVariant.withOpacity(0.8),
+                            color: colorScheme.onSurfaceVariant.withOpacity(
+                              0.8,
+                            ),
                           ),
                         ),
                       ],
@@ -429,10 +455,12 @@ class _HabitListScreenState extends State<HabitListScreen> {
 
                     // Calculate completions in current week
                     final completedCount = weekDays.where((day) {
-                      return habit.completionDates.any((d) =>
-                          d.year == day.year &&
-                          d.month == day.month &&
-                          d.day == day.day);
+                      return habit.completionDates.any(
+                        (d) =>
+                            d.year == day.year &&
+                            d.month == day.month &&
+                            d.day == day.day,
+                      );
                     }).length;
 
                     final isGoalMet = completedCount >= habit.targetFrequency;
@@ -459,7 +487,8 @@ class _HabitListScreenState extends State<HabitListScreen> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         habit.title,
@@ -476,14 +505,17 @@ class _HabitListScreenState extends State<HabitListScreen> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: colorScheme.secondaryContainer,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Text(
                                           habit.category,
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w500,
-                                            color: colorScheme.onSecondaryContainer,
+                                            color: colorScheme
+                                                .onSecondaryContainer,
                                           ),
                                         ),
                                       ),
@@ -499,7 +531,11 @@ class _HabitListScreenState extends State<HabitListScreen> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         if (isGoalMet) ...[
-                                          const Icon(Icons.stars, color: Colors.amber, size: 18),
+                                          const Icon(
+                                            Icons.stars,
+                                            color: Colors.amber,
+                                            size: 18,
+                                          ),
                                           const SizedBox(width: 4),
                                         ],
                                         Text(
@@ -507,14 +543,19 @@ class _HabitListScreenState extends State<HabitListScreen> {
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w800,
-                                            color: isGoalMet ? Colors.amber[900] : colorScheme.primary,
+                                            color: isGoalMet
+                                                ? Colors.amber[900]
+                                                : colorScheme.primary,
                                           ),
                                         ),
                                       ],
                                     ),
                                     const Text(
                                       'this week',
-                                      style: TextStyle(fontSize: 10, color: Colors.grey),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -526,11 +567,15 @@ class _HabitListScreenState extends State<HabitListScreen> {
                               borderRadius: BorderRadius.circular(4),
                               child: LinearProgressIndicator(
                                 value: habit.targetFrequency > 0
-                                    ? (completedCount / habit.targetFrequency).clamp(0.0, 1.0)
+                                    ? (completedCount / habit.targetFrequency)
+                                          .clamp(0.0, 1.0)
                                     : 0.0,
                                 minHeight: 6,
-                                backgroundColor: colorScheme.surfaceContainerHighest,
-                                color: isGoalMet ? Colors.amber : colorScheme.primary,
+                                backgroundColor:
+                                    colorScheme.surfaceContainerHighest,
+                                color: isGoalMet
+                                    ? Colors.amber
+                                    : colorScheme.primary,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -540,8 +585,14 @@ class _HabitListScreenState extends State<HabitListScreen> {
                               children: weekDays.map((day) {
                                 return Expanded(
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                                    child: _buildDaySelector(context, habit, day),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 3,
+                                    ),
+                                    child: _buildDaySelector(
+                                      context,
+                                      habit,
+                                      day,
+                                    ),
                                   ),
                                 );
                               }).toList(),
@@ -570,8 +621,12 @@ class _HabitListScreenState extends State<HabitListScreen> {
                                   ],
                                 ),
                                 TextButton.icon(
-                                  onPressed: () => _showHistoryBottomSheet(context, habit),
-                                  icon: const Icon(Icons.calendar_month, size: 16),
+                                  onPressed: () =>
+                                      _showHistoryBottomSheet(context, habit),
+                                  icon: const Icon(
+                                    Icons.calendar_month,
+                                    size: 16,
+                                  ),
                                   label: const Text(
                                     'History & Insights',
                                     style: TextStyle(fontSize: 12),
@@ -599,16 +654,15 @@ class _HabitListScreenState extends State<HabitListScreen> {
     return ChoiceChip(
       label: Text(
         label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
       ),
       selected: isSelected,
       onSelected: onSelected,
       selectedColor: colorScheme.primaryContainer,
       labelStyle: TextStyle(
-        color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
+        color: isSelected
+            ? colorScheme.onPrimaryContainer
+            : colorScheme.onSurface,
       ),
       showCheckmark: false,
     );
@@ -635,20 +689,14 @@ class _HabitListScreenState extends State<HabitListScreen> {
     }
   }
 
-  Widget _buildDaySelector(
-    BuildContext context,
-    Habit habit,
-    DateTime date,
-  ) {
-    final isDone = habit.completionDates.any((d) =>
-        d.year == date.year &&
-        d.month == date.month &&
-        d.day == date.day);
+  Widget _buildDaySelector(BuildContext context, Habit habit, DateTime date) {
+    final isDone = habit.completionDates.any(
+      (d) => d.year == date.year && d.month == date.month && d.day == date.day,
+    );
 
     final now = DateTime.now();
-    final isToday = date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
+    final isToday =
+        date.year == now.year && date.month == now.month && date.day == now.day;
     final isFuture = date.isAfter(DateTime(now.year, now.month, now.day));
 
     final colorScheme = Theme.of(context).colorScheme;
@@ -656,15 +704,23 @@ class _HabitListScreenState extends State<HabitListScreen> {
     // Premium styling colors
     final backgroundColor = isDone
         ? (isToday ? colorScheme.primary : colorScheme.primary.withOpacity(0.5))
-        : (isToday ? colorScheme.primaryContainer.withOpacity(0.5) : Colors.transparent);
+        : (isToday
+              ? colorScheme.primaryContainer.withOpacity(0.5)
+              : Colors.transparent);
 
     final textColor = isDone
         ? colorScheme.onPrimary
-        : (isToday ? colorScheme.primary : (isFuture ? colorScheme.onSurface.withOpacity(0.3) : colorScheme.onSurface.withOpacity(0.7)));
+        : (isToday
+              ? colorScheme.primary
+              : (isFuture
+                    ? colorScheme.onSurface.withOpacity(0.3)
+                    : colorScheme.onSurface.withOpacity(0.7)));
 
     final borderColor = isDone
         ? (isToday ? colorScheme.primary : colorScheme.primary.withOpacity(0.5))
-        : (isToday ? colorScheme.primary : colorScheme.outlineVariant.withOpacity(0.5));
+        : (isToday
+              ? colorScheme.primary
+              : colorScheme.outlineVariant.withOpacity(0.5));
 
     return InkWell(
       onTap: () {
@@ -692,10 +748,7 @@ class _HabitListScreenState extends State<HabitListScreen> {
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: borderColor,
-            width: isToday ? 2 : 1,
-          ),
+          border: Border.all(color: borderColor, width: isToday ? 2 : 1),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -706,8 +759,12 @@ class _HabitListScreenState extends State<HabitListScreen> {
                 fontSize: 10,
                 fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
                 color: isDone
-                    ? (isToday ? colorScheme.onPrimary.withOpacity(0.8) : colorScheme.onPrimary.withOpacity(0.6))
-                    : colorScheme.onSurfaceVariant.withOpacity(isToday ? 1.0 : (isFuture ? 0.3 : 0.6)),
+                    ? (isToday
+                          ? colorScheme.onPrimary.withOpacity(0.8)
+                          : colorScheme.onPrimary.withOpacity(0.6))
+                    : colorScheme.onSurfaceVariant.withOpacity(
+                        isToday ? 1.0 : (isFuture ? 0.3 : 0.6),
+                      ),
               ),
             ),
             const SizedBox(height: 4),
@@ -726,7 +783,9 @@ class _HabitListScreenState extends State<HabitListScreen> {
                   : (isToday ? Icons.add : (isFuture ? null : Icons.remove)),
               size: 10,
               color: isDone
-                  ? (isToday ? colorScheme.onPrimary : colorScheme.onPrimary.withOpacity(0.7))
+                  ? (isToday
+                        ? colorScheme.onPrimary
+                        : colorScheme.onPrimary.withOpacity(0.7))
                   : colorScheme.outline.withOpacity(isToday ? 1.0 : 0.4),
             ),
           ],
@@ -748,11 +807,12 @@ class _HabitListScreenState extends State<HabitListScreen> {
   int _calculateDailyStreak(Habit habit) {
     if (habit.completionDates.isEmpty) return 0;
 
-    final sortedDates = habit.completionDates
-        .map((d) => DateTime(d.year, d.month, d.day))
-        .toSet()
-        .toList()
-      ..sort((a, b) => b.compareTo(a));
+    final sortedDates =
+        habit.completionDates
+            .map((d) => DateTime(d.year, d.month, d.day))
+            .toSet()
+            .toList()
+          ..sort((a, b) => b.compareTo(a));
 
     final today = DateTime.now();
     final todayDate = DateTime(today.year, today.month, today.day);
@@ -813,7 +873,9 @@ class _HabitListScreenState extends State<HabitListScreen> {
     int pastWeeksMet = 0;
 
     while (true) {
-      final hasCompletionsInOrBeforeWeek = habit.completionDates.any((d) => getMonday(d).isBefore(checkMonday.add(const Duration(days: 1))));
+      final hasCompletionsInOrBeforeWeek = habit.completionDates.any(
+        (d) => getMonday(d).isBefore(checkMonday.add(const Duration(days: 1))),
+      );
       if (!hasCompletionsInOrBeforeWeek) break;
 
       if (isWeekTargetMet(checkMonday)) {
@@ -857,10 +919,10 @@ class _HabitListScreenState extends State<HabitListScreen> {
 
   Widget _buildPointsIndicator(BuildContext context, Habit habit) {
     final today = DateTime.now();
-    final isDoneToday = habit.completionDates.any((d) =>
-        d.year == today.year &&
-        d.month == today.month &&
-        d.day == today.day);
+    final isDoneToday = habit.completionDates.any(
+      (d) =>
+          d.year == today.year && d.month == today.month && d.day == today.day,
+    );
 
     final points = _calculatePotentialReward(habit, isDoneToday);
     final colorScheme = Theme.of(context).colorScheme;
@@ -912,7 +974,9 @@ class _HabitListScreenState extends State<HabitListScreen> {
     } else {
       completionDatesForCalc = List<DateTime>.from(habit.completionDates);
       final today = DateTime.now();
-      completionDatesForCalc.add(DateTime(today.year, today.month, today.day, 12, 0));
+      completionDatesForCalc.add(
+        DateTime(today.year, today.month, today.day, 12, 0),
+      );
     }
 
     final tempHabit = habit.copyWith(completionDates: completionDatesForCalc);

@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class FirebaseAuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -13,7 +14,9 @@ class FirebaseAuthService {
         password: password,
       );
       return userCredential.user;
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (e, stack) {
+      FirebaseCrashlytics.instance.log('SignUp failed: email=$email, code=${e.code}');
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Auth sign-up failure');
       throw _handleAuthException(e);
     }
   }
@@ -28,7 +31,9 @@ class FirebaseAuthService {
         password: password,
       );
       return userCredential.user;
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (e, stack) {
+      FirebaseCrashlytics.instance.log('SignIn failed: email=$email, code=${e.code}');
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Auth sign-in failure');
       throw _handleAuthException(e);
     }
   }

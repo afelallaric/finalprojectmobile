@@ -1,6 +1,7 @@
 import 'package:act_for_earth/data/remote/notification_service.dart';
 import 'package:act_for_earth/domain/model/user_reward.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class RewardFirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -16,22 +17,32 @@ class RewardFirestoreService {
         return null;
       }
       return UserReward.fromFirestore(doc);
+    }).handleError((error, stack) {
+      FirebaseCrashlytics.instance.log('Failed to watch user reward: userId=$userId');
+      FirebaseCrashlytics.instance.recordError(error, stack, reason: 'Watch user reward stream error');
+      throw error;
     });
   }
 
   Future<UserReward> getOrCreateUserReward(String userId) async {
-    final doc = await _collection.doc(userId).get();
-    if (doc.exists) {
-      return UserReward.fromFirestore(doc);
-    } else {
-      final newReward = UserReward(
-        id: userId,
-        userId: userId,
-        points: 0,
-        badges: const [],
-      );
-      await _collection.doc(userId).set(newReward.toFirestore());
-      return newReward;
+    try {
+      final doc = await _collection.doc(userId).get();
+      if (doc.exists) {
+        return UserReward.fromFirestore(doc);
+      } else {
+        final newReward = UserReward(
+          id: userId,
+          userId: userId,
+          points: 0,
+          badges: const [],
+        );
+        await _collection.doc(userId).set(newReward.toFirestore());
+        return newReward;
+      }
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.log('Failed to get/create user reward: userId=$userId');
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'getOrCreateUserReward firestore error');
+      rethrow;
     }
   }
 
@@ -40,11 +51,17 @@ class RewardFirestoreService {
     int newPoints,
     List<String> badges,
   ) async {
-    await _collection.doc(userId).set({
-      'userId': userId,
-      'points': newPoints,
-      'badges': badges,
-    }, SetOptions(merge: true));
+    try {
+      await _collection.doc(userId).set({
+        'userId': userId,
+        'points': newPoints,
+        'badges': badges,
+      }, SetOptions(merge: true));
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.log('Failed to update points & badges: userId=$userId, points=$newPoints');
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'updatePointsAndBadges firestore error');
+      rethrow;
+    }
   }
 
   Future<void> addPoints(String userId, int amount) async {

@@ -1,5 +1,6 @@
 import 'package:act_for_earth/domain/model/user_model.dart';
 import 'package:act_for_earth/domain/repository/auth_repository.dart';
+import 'package:act_for_earth/ui/profile/crashlytics_test_page.dart';
 import 'package:flutter/material.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -109,6 +110,14 @@ class _ProfilePageState extends State<ProfilePage> {
         }
       }
     }
+  }
+
+  void _handleTestCrashlytics() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const CrashlyticsTestPage(),
+      ),
+    );
   }
 
   Future<void> _handleDeleteAccount() async {
@@ -326,6 +335,18 @@ class _ProfilePageState extends State<ProfilePage> {
                               onPressed: _handleChangePassword,
                               icon: const Icon(Icons.password),
                               label: const Text('Change Password'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: _handleTestCrashlytics,
+                              icon: const Icon(Icons.bug_report_rounded),
+                              label: const Text('Test Crashlytics'),
                             ),
                           ),
                         ],

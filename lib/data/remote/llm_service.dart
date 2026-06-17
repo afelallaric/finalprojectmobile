@@ -1,4 +1,5 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class LLMService {
   static const String _apiKey = String.fromEnvironment('GEMINI_API_KEY');
@@ -56,7 +57,9 @@ Suggest 3 simple eco-friendly actions that the user can take based on their acti
       }
 
       return suggestions;
-    } catch (e) {
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.log('Gemini API query failed. API Key empty: ${_apiKey.isEmpty}');
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Gemini API Error');
       throw Exception('Gemini API Error: $e');
     }
   }

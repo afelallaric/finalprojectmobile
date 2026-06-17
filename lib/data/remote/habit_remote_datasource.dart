@@ -1,5 +1,6 @@
 import 'package:act_for_earth/domain/model/habit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class HabitRemoteDataSource {
   HabitRemoteDataSource({FirebaseFirestore? firestore})
@@ -22,11 +23,22 @@ class HabitRemoteDataSource {
         .map(
           (snapshot) =>
               snapshot.docs.map(Habit.fromFirestore).toList(growable: false),
-        );
+        )
+        .handleError((error, stack) {
+          FirebaseCrashlytics.instance.log('Failed to watch habits: userId=$userId');
+          FirebaseCrashlytics.instance.recordError(error, stack, reason: 'Watch habits stream error');
+          throw error;
+        });
   }
 
   Future<void> createHabit(Habit habit) async {
-    await _collection.add(habit.toFirestore());
+    try {
+      await _collection.add(habit.toFirestore());
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.log('Failed to create habit: title=${habit.title}');
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Create habit firestore error');
+      rethrow;
+    }
   }
 
   Future<void> updateHabit(Habit habit) async {
@@ -34,7 +46,13 @@ class HabitRemoteDataSource {
       throw ArgumentError('Habit id cannot be empty for update.');
     }
 
-    await _collection.doc(habit.habitId).update(habit.toFirestore());
+    try {
+      await _collection.doc(habit.habitId).update(habit.toFirestore());
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.log('Failed to update habit: id=${habit.habitId}');
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Update habit firestore error');
+      rethrow;
+    }
   }
 
   Future<void> deleteHabit(String habitId) async {
@@ -42,6 +60,12 @@ class HabitRemoteDataSource {
       throw ArgumentError('Habit id cannot be empty for delete.');
     }
 
-    await _collection.doc(habitId).delete();
+    try {
+      await _collection.doc(habitId).delete();
+    } catch (e, stack) {
+      FirebaseCrashlytics.instance.log('Failed to delete habit: id=$habitId');
+      FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Delete habit firestore error');
+      rethrow;
+    }
   }
 }

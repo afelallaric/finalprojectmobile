@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -29,7 +30,17 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
     if (androidImplementation != null) {
-      await androidImplementation.requestNotificationsPermission();
+      try {
+        final bool? granted = await androidImplementation.requestNotificationsPermission();
+        if (granted == false) {
+          FirebaseCrashlytics.instance.log('Notification permission denied by user (Android)');
+        } else {
+          FirebaseCrashlytics.instance.log('Notification permission granted (Android): $granted');
+        }
+      } catch (e, stack) {
+        FirebaseCrashlytics.instance.log('Exception requesting notifications permission');
+        FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Notification permission request error');
+      }
     }
   }
 
